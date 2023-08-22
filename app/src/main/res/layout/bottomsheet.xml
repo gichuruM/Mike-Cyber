@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:elevation="7dp"
-        android:id="@+id/purchaseFromVendor">
+        android:id="@+id/moneyTracker">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -21,7 +21,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Purchase from vendor"
+                android:text="Money tracker"
                 android:textSize="25sp"/>
 
             <ImageView
@@ -40,7 +40,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:elevation="7dp"
-        android:id="@+id/adjustStock">
+        android:id="@+id/purchaseFromVendor">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -52,7 +52,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Adjust Stock"
+                android:text="Vendor Purchase"
                 android:textSize="25sp"/>
 
             <ImageView

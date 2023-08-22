@@ -132,7 +132,17 @@ public class HomeActivity extends AppCompatActivity{
         bottomSheetDialog.show();
 
         CardView purchaseFromVendor = view.findViewById(R.id.purchaseFromVendor);
-        CardView adjustStock = view.findViewById(R.id.adjustStock);
+        CardView moneyTracker = view.findViewById(R.id.moneyTracker);
+
+        moneyTracker.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomSheetDialog.cancel();
+
+                Intent intent = new Intent(HomeActivity.this,MoneyTrackerActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
