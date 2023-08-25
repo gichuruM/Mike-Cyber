@@ -13,6 +13,8 @@ import com.google.gson.Gson;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class InternalDataBase {
 
@@ -22,6 +24,7 @@ public class InternalDataBase {
     public static String ALL_PRODUCTS = "ALL_PRODUCTS";
     public static String UNSAVED_NOTES = "UNSAVED_NOTES";
     public static String SYNC_STATUS = "SYNC_STATUS";
+    public static String MONEY_TRACKING = "MONEY_TRACKING";
 
     private static ArrayList<NoteModel> unsavedNotes;
 
@@ -34,11 +37,16 @@ public class InternalDataBase {
 
         if(getAllProducts() == null){
             editor.putString(ALL_PRODUCTS,gson.toJson(new ArrayList<ProductModel>()));
-            editor.commit();
+            editor.apply();
         }
         if(getUnsavedNotes() == null){
             editor.putString(UNSAVED_NOTES,gson.toJson(new ArrayList<NoteModel>()));
-            editor.commit();
+            editor.apply();
+        }
+        if(getTrackingData() == null){
+            Map<String, Integer> map = new HashMap<>();
+            editor.putString(MONEY_TRACKING,gson.toJson(map));
+            editor.apply();
         }
     }
 
@@ -62,10 +70,34 @@ public class InternalDataBase {
         if(allProducts.add(productModel)){
             editor.remove(ALL_PRODUCTS);
             editor.putString(ALL_PRODUCTS,gson.toJson(allProducts));
-            editor.commit();
+            editor.apply();
             return true;
         }
         return false;
+    }
+
+    public boolean addToMoneyTracking(String date, int capital){
+        SharedPreferences.Editor editor = sharedPref.edit();
+        Gson gson = new Gson();
+
+        Map<String, Integer> moneyTracking = getTrackingData();
+
+        if(moneyTracking == null) return false;
+        Log.d(TAG, "addToMoneyTracking: Adding Starting Tracking Capital");
+
+        moneyTracking.put(date,capital);
+        editor.remove(MONEY_TRACKING);
+        editor.putString(MONEY_TRACKING,gson.toJson(moneyTracking));
+        editor.apply();
+
+        return true;
+    }
+
+    public Map<String, Integer> getTrackingData(){
+        Type type = new TypeToken<Map<String, Integer>>(){}.getType();
+        String json = sharedPref.getString(MONEY_TRACKING,"null");
+        Gson gson = new Gson();
+        return gson.fromJson(json,type);
     }
 
     public boolean removeFromUnsavedNotes(NoteModel note){
@@ -81,7 +113,7 @@ public class InternalDataBase {
                 if(noteModels.remove(n)){
                     editor.remove(UNSAVED_NOTES);
                     editor.putString(UNSAVED_NOTES,gson.toJson(noteModels));
-                    editor.commit();
+                    editor.apply();
                     Log.d(TAG, "removeFromUnsavedNotes: successfully removed from unsaved list");
                     return true;
                 }
@@ -97,7 +129,7 @@ public class InternalDataBase {
         editor.remove(UNSAVED_NOTES);
         editor.putString(UNSAVED_NOTES,gson.toJson(new ArrayList<NoteModel>()));
         setSyncStatus(false);
-        editor.commit();
+        editor.apply();
     }
 
     public boolean addToUnsavedNotes(NoteModel note){
@@ -111,7 +143,7 @@ public class InternalDataBase {
         if(noteModels.add(note)){
             editor.remove(UNSAVED_NOTES);
             editor.putString(UNSAVED_NOTES,gson.toJson(noteModels));
-            editor.commit();
+            editor.apply();
             Log.d(TAG, "addToUnsavedNotes: successfully added to unsaved notes. Size "+noteModels.size());
             return true;
         }
@@ -123,7 +155,7 @@ public class InternalDataBase {
 
         editor.remove(SYNC_STATUS);
         editor.putBoolean(SYNC_STATUS,value);
-        editor.commit();
+        editor.apply();
     }
 
     public boolean getSyncStatus(){
