@@ -17,6 +17,7 @@ import com.example.mabei_poa.R;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class ReportDataAdapter extends RecyclerView.Adapter<ReportDataAdapter.MyViewHolder>{
 
@@ -41,7 +42,9 @@ public class ReportDataAdapter extends RecyclerView.Adapter<ReportDataAdapter.My
 
         holder.reportDate.setText(simpleDateFormat.format(transactionModel.getTime()));
         holder.reportPayment.setText(transactionModel.getPaymentMethod());
-        holder.reportItemNum.setText(String.valueOf(transactionModel.getCartModelArrayList().size()));
+        Map<String, Double> cartDetails = transactionModel.getCartDetails();
+
+        holder.reportItemNum.setText(String.valueOf(cartDetails.size()));
         if(reportSettingType.equals("Sales"))
             holder.reportAmountTotal.setText(String.valueOf(transactionModel.getTotalAmount()));
         else if(reportSettingType.equals("Profit")){

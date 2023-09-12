@@ -17,17 +17,18 @@ import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.R;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class TransactionCartProductAdapter extends RecyclerView.Adapter<TransactionCartProductAdapter.MyViewHolder>{
 
     private Context context;
     private ArrayList<ProductModel> productModels;
-    private ArrayList<CartModel> cartModels;
+    private Map<String, Double> cartItemDetails;
 
-    public TransactionCartProductAdapter(Context context, ArrayList<ProductModel> productModels, ArrayList<CartModel> cartModels) {
+    public TransactionCartProductAdapter(Context context, ArrayList<ProductModel> productModels, Map<String, Double> cartItemDetails) {
         this.context = context;
         this.productModels = productModels;
-        this.cartModels = cartModels;
+        this.cartItemDetails = cartItemDetails;
     }
 
     @NonNull
@@ -42,10 +43,10 @@ public class TransactionCartProductAdapter extends RecyclerView.Adapter<Transact
         ProductModel product = productModels.get(position);
         //Log.d(TAG, "onBindViewHolder: Transaction cartModel size "+cartModels.size());
         holder.transactionProductName.setText(product.getName());
-        holder.transactionProductPrice.setText(String.valueOf(cartModels.get(position).getAmount()));
-        holder.transactionProductQty.setText(String.valueOf(cartModels.get(position).getQuantity()));
+        holder.transactionProductPrice.setText(String.valueOf(product.getSellingPrice()));
+        holder.transactionProductQty.setText(String.valueOf(cartItemDetails.get(product.getId())));
         holder.transactionProductUnits.setText(product.getUnits());
-        holder.transactionProductAmount.setText(String.valueOf(cartModels.get(position).getProductTotal()));
+        holder.transactionProductAmount.setText(String.valueOf(cartItemDetails.get(product.getId())*product.getSellingPrice()));
     }
 
     @Override
