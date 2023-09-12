@@ -1,12 +1,15 @@
 package com.example.mabei_poa;
 
+import static com.example.mabei_poa.Adapter.AllProductsAdapter.fullProductModelArrayList;
 import static com.example.mabei_poa.ExtraClasses.ConnectivityReceiver.noConnectivity;
 import static com.example.mabei_poa.ProductsActivity.TAG;
 import static com.example.mabei_poa.SaleToCustomerActivity.cartProductsList;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -24,14 +27,23 @@ import android.view.animation.AnimationUtils;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.example.mabei_poa.Adapter.AllProductsAdapter;
 import com.example.mabei_poa.ExtraClasses.ConnectivityReceiver;
 import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.ExtraClasses.SyncNotesRunnable;
 import com.example.mabei_poa.Model.NoteModel;
+import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.databinding.ActivityHomeBinding;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class HomeActivity extends AppCompatActivity{
@@ -102,6 +114,45 @@ public class HomeActivity extends AppCompatActivity{
         });
 
         InternalDataBase.getInstance(this);
+
+        ArrayList<ProductModel> productsList = InternalDataBase.getInstance(this).getAllProducts();
+        //Initializing internal data base product list if it's empty
+        if(productsList == null){
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    fullProductModelArrayList.clear();
+
+                    FirebaseFirestore.getInstance().collection("products")
+                            .orderBy("name", Query.Direction.ASCENDING)
+                            .get()
+                            .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                @Override
+                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                    List<DocumentSnapshot> dsList = queryDocumentSnapshots.getDocuments();
+
+                                    for(DocumentSnapshot ds: dsList){
+                                        ProductModel product = ds.toObject(ProductModel.class);
+                                        fullProductModelArrayList.add(product);
+                                    }
+
+                                    InternalDataBase.getInstance(HomeActivity.this).batchAdditionToAllProducts(fullProductModelArrayList);
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(HomeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
+                            });
+                }
+            });
+        }
     }
 
     private void SyncNotes() {

@@ -21,10 +21,13 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.Interface.CartItemClickedInterface;
 import com.example.mabei_poa.Model.CartModel;
 import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.R;
+
+import java.util.ArrayList;
 
 public class CartAdapter extends RecyclerView.Adapter<CartAdapter.MyViewHolder>{
 
@@ -50,20 +53,26 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.MyViewHolder>{
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         CartModel cartModel = cartProductsList.get(position);
-        ProductModel cartItem = cartModel.getProductModel();
 
-        holder.cartItemName.setText(cartItem.getName());
-        holder.cartItemPrice.setText(String.valueOf(cartItem.getSellingPrice()));
-        holder.cartItemUnits.setText(cartItem.getUnits());
+        ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(context).getAllProducts();
+        for(ProductModel p: allProducts){
+            if(cartModel.getProductId().equals(p.getId())){
+                ProductModel cartItem = p;
 
-        holder.cartItemTotal.setText(String.valueOf(cartModel.getProductTotal()));
-        holder.cartQuantity.setText(String.valueOf(cartModel.getQuantity()));
-//        Log.d(TAG, "onBindViewHolder: name "+cartModel.getProductModel().getName()+" total "+cartModel.getProductTotal());
-        Glide.with(context)
-                .load(cartItem.getImage())
-                .into(holder.cartItemImg);
+                holder.cartItemName.setText(cartItem.getName());
+                holder.cartItemPrice.setText(String.valueOf(cartItem.getSellingPrice()));
+                holder.cartItemUnits.setText(cartItem.getUnits());
 
-        totalCartAmount();
+                holder.cartItemTotal.setText(String.valueOf(cartModel.getProductTotal()));
+                holder.cartQuantity.setText(String.valueOf(cartModel.getQuantity()));
+
+                Glide.with(context)
+                        .load(cartItem.getImage())
+                        .into(holder.cartItemImg);
+
+                totalCartAmount();
+            }
+        }
     }
 
     @Override

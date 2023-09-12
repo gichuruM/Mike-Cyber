@@ -69,7 +69,7 @@ public class ProductsActivity extends AppCompatActivity {
             if(temporaryCartList.size() > 0){
                 for(CartModel t : temporaryCartList){
                     for(CartModel c : cartProductsList){
-                        if(t.getProductModel().getId().equals(c.getProductModel().getId())){
+                        if(t.getProductId().equals(c.getProductId())){
                             //Log.d(TAG, "onBackPressed: Removing "+c.getProductModel().getName());
                             cartProductsList.remove(c);
                             break;

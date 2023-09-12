@@ -19,14 +19,20 @@ import android.widget.Toast;
 import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.Model.CartModel;
 import com.example.mabei_poa.Model.NoteModel;
+import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.Model.TransactionModel;
 import com.example.mabei_poa.databinding.ActivityCheckOutBinding;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class CheckOutActivity extends AppCompatActivity {
@@ -39,7 +45,7 @@ public class CheckOutActivity extends AppCompatActivity {
         binding = ActivityCheckOutBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        getSupportActionBar().hide();
+        Objects.requireNonNull(getSupportActionBar()).hide();
 
         binding.totalCost.setText(String.valueOf(totalAmount));
         changeCalculation();
@@ -47,10 +53,15 @@ public class CheckOutActivity extends AppCompatActivity {
         binding.receivedAmount.setText("");
         binding.receivedAmount.requestFocus();
 
-//        Log.d(TAG, "onCreate: Size of cart "+cartProductsList.size());
-//        for(CartModel c: cartProductsList){
-//            Log.d(TAG, "onCreate: Name "+c.getProductModel().getName()+" buying "+c.getProductModel().getPurchasePrice()+" profit "+(c.getProductModel().getSellingPrice()-c.getProductModel().getPurchasePrice()));
-//        }
+        Log.d(TAG, "onCreate: checkout size "+cartProductsList);
+        for(CartModel c: cartProductsList){
+            ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(this).getAllProducts();
+            for(ProductModel p: allProducts){
+                if(c.getProductId().equals(p.getId())){
+                    Log.d(TAG, "onCreate: Name "+p.getName());
+                }
+            }
+        }
 
         binding.autofillReceivedAmount.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,17 +120,27 @@ public class CheckOutActivity extends AppCompatActivity {
                     //Calculating profit on transaction
                     double totalProfit = 0;
                     for(CartModel c: cartProductsList){
-                        totalProfit += (c.getProductModel().getSellingPrice() - c.getProductModel().getPurchasePrice())*c.getQuantity();
+                        ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(CheckOutActivity.this).getAllProducts();
+                        for(ProductModel p: allProducts){
+                            if(c.getProductId().equals(p.getId())){
+                                totalProfit += (p.getSellingPrice() - p.getPurchasePrice())*c.getQuantity();
+                            }
+                        }
                     }
                     Log.d(TAG, "onClick: Total profit "+totalProfit);
                     Log.d(TAG, "onClick: transaction id "+randomId);
+                    Log.d(TAG, "onClick: size"+cartProductsList.size());
+
+                    Map<String, Double> cartDetails = new HashMap<>();
+
+                    for(CartModel c: cartProductsList)
+                        cartDetails.put(c.getProductId(),c.getQuantity());
 
                     TransactionModel transaction = new TransactionModel(randomId,transactionTime,
-                            cartProductsList,totalAmount,receivedAmount,changeAmount,payment,note,totalProfit);
+                            cartDetails,totalAmount,receivedAmount,changeAmount,payment,note,totalProfit);
 
                     Handler handler = new Handler();
 
-                    startActivity(new Intent(CheckOutActivity.this,HomeActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                     //Log.d(TAG, "onClick: saving initially "+InternalDataBase.getInstance(CheckOutActivity.this).getUnsavedNotes().size());
                     new Thread(new Runnable() {
                         @Override
@@ -128,7 +149,7 @@ public class CheckOutActivity extends AppCompatActivity {
                             if(!note.equals("")){
                                 SimpleDateFormat dateFormat = new SimpleDateFormat("h:mm a d/M/yy");
                                 NoteModel transactionNote = new NoteModel(dateFormat.format(new Date()),note,randomId,new Date(),false);
-
+                                Log.d(TAG, "run: Note before: "+transaction.getNote());
                                 FirebaseFirestore.getInstance().collection("Notes")
                                         .document(randomId)
                                         .set(transactionNote)
@@ -154,10 +175,10 @@ public class CheckOutActivity extends AppCompatActivity {
                         }
 
                         private void saveTransaction(String randomId, TransactionModel transaction){
-                            //Log.d(TAG, "saveTransaction run: offline size "+ InternalDataBase.getInstance(CheckOutActivity.this).getUnsavedNotes().size());
-                            FirebaseFirestore.getInstance().collection("Transactions")
-                                    .document(randomId)
-                                    .set(transaction)
+//                            Log.d(TAG, "saveTransaction run: Transaction "+ transaction.getCartModelArrayList().size());
+                            DocumentReference docRef = FirebaseFirestore.getInstance().collection("Transactions").document(randomId);
+
+                            docRef.set(transaction)
                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
                                         public void onSuccess(Void unused) {
@@ -165,7 +186,6 @@ public class CheckOutActivity extends AppCompatActivity {
                                                 @Override
                                                 public void run() {
                                                     Toast.makeText(CheckOutActivity.this, "Transaction saved successfully", Toast.LENGTH_SHORT).show();
-                                                    Log.d(TAG, "Success saveTransaction run: offline size "+ InternalDataBase.getInstance(CheckOutActivity.this).getUnsavedNotes().size());
                                                 }
                                             });
                                         }
@@ -183,6 +203,8 @@ public class CheckOutActivity extends AppCompatActivity {
                                     });
                         }
                     }).start();
+
+                    startActivity(new Intent(CheckOutActivity.this,HomeActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                 }
 
             }

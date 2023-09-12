@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -225,13 +226,13 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                     int pos = -1;
                     for(CartModel c: cartProductsList){
                         pos++;
-                        if(c.getProductModel().getId().equals(p.getId())){
+                        if(c.getProductId().equals(p.getId())){
                             double quantity = c.getQuantity() + 1;
                             Toast.makeText(this, "Product already in cart quantity "+quantity, Toast.LENGTH_SHORT).show();
                             cartProductsList.remove(cartProductsList.get(pos));
                             cartAdapter.notifyItemRemoved(pos);
-//                            Log.d(TAG, "scanningResults: quantity "+quantity);
-                            CartModel cartModel = new CartModel(p,quantity,p.getSellingPrice(),p.getSellingPrice()*quantity);
+
+                            CartModel cartModel = new CartModel(p.getId(),quantity,p.getSellingPrice()*quantity);
                             cartProductsList.add(pos, cartModel);
                             cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
                             binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
@@ -241,7 +242,7 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                     }
 
                     if(!inCart){
-                        CartModel cartModel = new CartModel(p,1,p.getSellingPrice(),p.getSellingPrice());
+                        CartModel cartModel = new CartModel(p.getId(),1,p.getSellingPrice());
                         cartProductsList.add(cartModel);
                         cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
                         binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
@@ -251,7 +252,7 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
         } else {
             for(ProductModel p: scanningArray) {
                 if (scannedBarcode.equals(String.valueOf(p.getBarcodeNum())) || barcode == p.getBarcodeNum()){
-                    CartModel cartModel = new CartModel(p,1,p.getSellingPrice(),p.getSellingPrice());
+                    CartModel cartModel = new CartModel(p.getId(),1,p.getSellingPrice());
                     cartProductsList.add(cartModel);
                     cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
                 }
@@ -273,10 +274,23 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
         //Log.i(TAG, "onTextChange: text changing "+text);
         CartModel cartModel = cartProductsList.get(position);
 
-        cartModel.setQuantity(Double.parseDouble(text));
-        long productTotal = Math.round(cartModel.getQuantity()*cartModel.getAmount());
-        cartModel.setProductTotal((double) productTotal);
-        view.setText(String.valueOf(productTotal));
-        totalCartAmount();
+        ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(SaleToCustomerActivity.this).getAllProducts();
+
+        boolean found = false;
+
+        for(ProductModel p: allProducts){
+            if(cartModel.getProductId().equals(p.getId())){
+                found = true;
+                cartModel.setQuantity(Double.parseDouble(text));
+                long productTotal = Math.round(cartModel.getQuantity()*p.getSellingPrice());
+                cartModel.setProductTotal((double) productTotal);
+                view.setText(String.valueOf(productTotal));
+                totalCartAmount();
+            }
+        }
+
+        if(!found){
+            Toast.makeText(this, "Quantity adjustment NOT successful", Toast.LENGTH_SHORT).show();
+        }
     }
 }

@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.Model.CartModel;
 import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.Model.TransactionModel;
@@ -21,6 +22,8 @@ import com.example.mabei_poa.R;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.MyViewHolder> {
 
@@ -59,13 +62,18 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
         //Creating the recyclerview for the products in the transaction
         productsList.clear();
-        for(CartModel c: transaction.getCartModelArrayList())
-            productsList.add(c.getProductModel());
+        Map<String, Double> cartDetails = transaction.getCartDetails();
 
-        //Log.d(TAG, "onBindViewHolder: time "+time+" productsList "+productsList.size());
-        Log.d(TAG, "onBindViewHolder: cartModelArrayList "+transaction.getCartModelArrayList()+" id "+transaction.getTransactionId());
+        for(String ids : cartDetails.keySet()){
+            ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(context).getAllProducts();
+            for(ProductModel p: allProducts){
+                if(ids.equals(p.getId())){
+                    productsList.add(p);
+                }
+            }
+        }
 
-        TransactionCartProductAdapter adapter = new TransactionCartProductAdapter(context,productsList,transaction.getCartModelArrayList());
+        TransactionCartProductAdapter adapter = new TransactionCartProductAdapter(context,productsList,cartDetails);
 
         holder.recyclerView.setAdapter(adapter);
         holder.recyclerView.setLayoutManager(new LinearLayoutManager(context));

@@ -108,11 +108,12 @@ public class AllProductsAdapter extends RecyclerView.Adapter<AllProductsAdapter.
         holder.productUnits.setText(productModel.getUnits());
         holder.productInCartMark.setVisibility(View.GONE);
         //checking if a product is in the cart
-        for(CartModel p: cartProductsList){
-            if(p.getProductModel().getId().equals(productModel.getId())){
+        for(CartModel c: cartProductsList){
+            if(c.getProductId().equals(productModel.getId())){
                 holder.productInCartMark.setVisibility(View.VISIBLE);
 //                Log.d(TAG, "onBindViewHolder: Name passing "+holder.productName.getText().toString());
             }
+
         }
 
         Glide.with(context)
@@ -131,7 +132,7 @@ public class AllProductsAdapter extends RecyclerView.Adapter<AllProductsAdapter.
                     boolean inCart = false;
 
                     for(CartModel p: cartProductsList){
-                        if(p.getProductModel().getId().equals(productModel.getId())){
+                        if(p.getProductId().equals(productModel.getId())){
                             inCart = true;
                             int position = cartProductsList.indexOf(p);
                             cartProductsList.remove(p);
@@ -139,24 +140,23 @@ public class AllProductsAdapter extends RecyclerView.Adapter<AllProductsAdapter.
                             holder.productInCartMark.setVisibility(View.GONE);
 
                             for(CartModel c: temporaryCartList){
-                                if(c.getProductModel().getId().equals(productModel.getId())){
+                                if(c.getProductId().equals(productModel.getId())){
                                     temporaryCartList.remove(c);
                                     break;
                                 }
                             }
-//                            Log.d(TAG, "onClick: Removed cartsize: "+cartProductsList.size()+" temporaryCartList "+temporaryCartList.size());
+
                             break;
                         }
                     }
 
                     if(!inCart) {    //Not in cart therefore adding
-                        CartModel cartModel = new CartModel(productModel,1,productModel.getSellingPrice(),productModel.getSellingPrice());
+                        CartModel cartModel = new CartModel(productModel.getId(),1,productModel.getSellingPrice());
                         cartProductsList.add(cartModel);
                         cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
                         holder.productInCartMark.setVisibility(View.VISIBLE);
                         //Adding product to temp 
                         temporaryCartList.add(cartModel);
-//                        Log.d(TAG, "onClick: Added to cart. cartsize: "+cartProductsList.size()+" temporaryCartList "+temporaryCartList.size());
                     }
                 }
             }

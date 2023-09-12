@@ -1,14 +1,14 @@
 package com.example.mabei_poa.Model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
 public class TransactionModel implements Serializable {
 
     private String transactionId;
     private Date time;
-    private ArrayList<CartModel> cartModelArrayList;
+    private Map<String, Double> cartDetails;
     private double totalAmount;
     private double receivedAmount;
     private double changeAmount;
@@ -19,10 +19,10 @@ public class TransactionModel implements Serializable {
     public TransactionModel() {
     }
 
-    public TransactionModel(String transactionId, Date time, ArrayList<CartModel> cartModelArrayList, double totalAmount, double receivedAmount, double changeAmount, String paymentMethod, String note, double profit) {
+    public TransactionModel(String transactionId, Date time, Map<String, Double> cartDetails, double totalAmount, double receivedAmount, double changeAmount, String paymentMethod, String note, double profit) {
         this.transactionId = transactionId;
         this.time = time;
-        this.cartModelArrayList = cartModelArrayList;
+        this.cartDetails = cartDetails;
         this.totalAmount = totalAmount;
         this.receivedAmount = receivedAmount;
         this.changeAmount = changeAmount;
@@ -47,12 +47,12 @@ public class TransactionModel implements Serializable {
         this.time = time;
     }
 
-    public ArrayList<CartModel> getCartModelArrayList() {
-        return cartModelArrayList;
+    public Map<String, Double> getCartDetails() {
+        return cartDetails;
     }
 
-    public void setCartModelArrayList(ArrayList<CartModel> cartModelArrayList) {
-        this.cartModelArrayList = cartModelArrayList;
+    public void setCartDetails(Map<String, Double> cartDetails) {
+        this.cartDetails = cartDetails;
     }
 
     public double getTotalAmount() {
