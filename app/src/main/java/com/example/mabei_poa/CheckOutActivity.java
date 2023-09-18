@@ -10,12 +10,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.example.mabei_poa.ExtraClasses.ChangingQuantityRunnable;
 import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.Model.CartModel;
 import com.example.mabei_poa.Model.NoteModel;
@@ -38,6 +40,8 @@ import java.util.UUID;
 public class CheckOutActivity extends AppCompatActivity {
 
     ActivityCheckOutBinding binding;
+    private HandlerThread handlerThread = new HandlerThread("changingQuantity");
+    private Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,12 +57,11 @@ public class CheckOutActivity extends AppCompatActivity {
         binding.receivedAmount.setText("");
         binding.receivedAmount.requestFocus();
 
-        Log.d(TAG, "onCreate: checkout size "+cartProductsList);
         for(CartModel c: cartProductsList){
             ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(this).getAllProducts();
             for(ProductModel p: allProducts){
                 if(c.getProductId().equals(p.getId())){
-                    Log.d(TAG, "onCreate: Name "+p.getName());
+                    Log.d(TAG, "onCreate: Name "+p.getName()+" quantity "+p.getQuantity());
                 }
             }
         }
@@ -113,23 +116,49 @@ public class CheckOutActivity extends AppCompatActivity {
                 else {  //saving the transaction
                     Date transactionTime = new Date();
                     double receivedAmount = Double.parseDouble(binding.receivedAmount.getText().toString());
+                    double total = totalAmount;
+                    double totalProfit = 0;
+
                     double changeAmount = Double.parseDouble(binding.customersChange.getText().toString());
                     String note = binding.transactionNote.getText().toString();
                     String randomId = UUID.randomUUID().toString();
 
-                    //Calculating profit on transaction
-                    double totalProfit = 0;
-                    for(CartModel c: cartProductsList){
-                        ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(CheckOutActivity.this).getAllProducts();
-                        for(ProductModel p: allProducts){
-                            if(c.getProductId().equals(p.getId())){
-                                totalProfit += (p.getSellingPrice() - p.getPurchasePrice())*c.getQuantity();
+                    //Thread for changing the quantity of items after a sale
+                    handlerThread.start();
+                    handler = new Handler(handlerThread.getLooper());
+
+                    if(InternalDataBase.getInstance(CheckOutActivity.this).getCartType().equals("Purchase")){
+                        receivedAmount = -receivedAmount;
+                        total = -total;
+                        //Adjusting quantity after transaction
+                        for(CartModel c: cartProductsList){
+                            ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(CheckOutActivity.this).getAllProducts();
+                            for(ProductModel p: allProducts){
+                                if(c.getProductId().equals(p.getId())){
+
+                                    ChangingQuantityRunnable editQuantity = new ChangingQuantityRunnable(CheckOutActivity.this,p.getId(),p.getQuantity()+c.getQuantity());
+                                    handler.post(editQuantity);
+                                }
                             }
                         }
                     }
+                    if(InternalDataBase.getInstance(CheckOutActivity.this).getCartType().equals("Sale")){
+                        for(CartModel c: cartProductsList){
+                            ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(CheckOutActivity.this).getAllProducts();
+                            for(ProductModel p: allProducts){
+                                if(c.getProductId().equals(p.getId())){
+                                    //Adjusting quantity after transaction
+                                    ChangingQuantityRunnable editQuantity = new ChangingQuantityRunnable(CheckOutActivity.this,p.getId(),p.getQuantity()-c.getQuantity());
+                                    handler.post(editQuantity);
+
+                                    totalProfit += (p.getSellingPrice() - p.getPurchasePrice())*c.getQuantity();
+                                }
+                            }
+                        }
+                    }
+
                     Log.d(TAG, "onClick: Total profit "+totalProfit);
                     Log.d(TAG, "onClick: transaction id "+randomId);
-                    Log.d(TAG, "onClick: size"+cartProductsList.size());
 
                     Map<String, Double> cartDetails = new HashMap<>();
 
@@ -137,9 +166,8 @@ public class CheckOutActivity extends AppCompatActivity {
                         cartDetails.put(c.getProductId(),c.getQuantity());
 
                     TransactionModel transaction = new TransactionModel(randomId,transactionTime,
-                            cartDetails,totalAmount,receivedAmount,changeAmount,payment,note,totalProfit);
-
-                    Handler handler = new Handler();
+                            cartDetails,total,receivedAmount,changeAmount,payment,note,totalProfit,
+                            InternalDataBase.getInstance(CheckOutActivity.this).getCartType());
 
                     //Log.d(TAG, "onClick: saving initially "+InternalDataBase.getInstance(CheckOutActivity.this).getUnsavedNotes().size());
                     new Thread(new Runnable() {
@@ -216,5 +244,10 @@ public class CheckOutActivity extends AppCompatActivity {
             Double change = Double.parseDouble(binding.receivedAmount.getText().toString()) - totalAmount;
             binding.customersChange.setText(String.valueOf(change));
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }

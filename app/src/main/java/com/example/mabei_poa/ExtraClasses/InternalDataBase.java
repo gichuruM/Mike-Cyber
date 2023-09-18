@@ -25,6 +25,7 @@ public class InternalDataBase {
     public static String UNSAVED_NOTES = "UNSAVED_NOTES";
     public static String SYNC_STATUS = "SYNC_STATUS";
     public static String MONEY_TRACKING = "MONEY_TRACKING";
+    public static String CART_TYPE = "CART_TYPE";
 
     private static ArrayList<NoteModel> unsavedNotes;
 
@@ -46,6 +47,10 @@ public class InternalDataBase {
         if(getTrackingData() == null){
             Map<String, Integer> map = new HashMap<>();
             editor.putString(MONEY_TRACKING,gson.toJson(map));
+            editor.apply();
+        }
+        if(getCartType() == null){
+            editor.putString(CART_TYPE,"noType");
             editor.apply();
         }
     }
@@ -74,6 +79,35 @@ public class InternalDataBase {
             return true;
         }
         return false;
+    }
+
+    public boolean editProduct(String id, Double quantity){
+        SharedPreferences.Editor editor = sharedPref.edit();
+        Gson gson = new Gson();
+
+        ArrayList<ProductModel> allProducts = getAllProducts();
+        Log.d(TAG, "addToAllProducts: editing a product");
+        if(allProducts == null) return false;
+
+        for(ProductModel product: allProducts){
+            if(product.getId().equals(id)){
+                product.setQuantity(quantity);
+                break;
+            }
+        }
+
+        editor.remove(ALL_PRODUCTS);
+        editor.putString(ALL_PRODUCTS,gson.toJson(allProducts));
+        editor.apply();
+
+        for(ProductModel product: getAllProducts()){
+            if(product.getId().equals(id)){
+                Log.d(TAG, "editProduct: Product "+product.getName()+" quantity "+product.getQuantity());
+                break;
+            }
+        }
+
+        return true;
     }
 
     public boolean addToMoneyTracking(String date, int capital){
@@ -158,6 +192,14 @@ public class InternalDataBase {
         editor.apply();
     }
 
+    public void setCartType(String cart){
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        editor.remove(CART_TYPE);
+        editor.putString(CART_TYPE,cart);
+        editor.apply();
+    }
+
     public boolean getSyncStatus(){
         return(sharedPref.getBoolean(SYNC_STATUS,false));
     }
@@ -175,6 +217,10 @@ public class InternalDataBase {
         Gson gson = new Gson();
 
         return gson.fromJson(json,type);
+    }
+
+    public String getCartType() {
+        return sharedPref.getString(CART_TYPE,"noType");
     }
 
     public static InternalDataBase getInstance(Context context){

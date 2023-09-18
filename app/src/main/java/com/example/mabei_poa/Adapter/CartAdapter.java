@@ -59,11 +59,20 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.MyViewHolder>{
             if(cartModel.getProductId().equals(p.getId())){
                 ProductModel cartItem = p;
 
-                holder.cartItemName.setText(cartItem.getName());
-                holder.cartItemPrice.setText(String.valueOf(cartItem.getSellingPrice()));
-                holder.cartItemUnits.setText(cartItem.getUnits());
+                if(InternalDataBase.getInstance(context).getCartType().equals("Purchase")){
+                    holder.cartItemPrice.setText(String.valueOf(cartItem.getPurchasePrice()));
+                    holder.cartItemTotal.setText(String.valueOf(cartModel.getQuantity()*cartItem.getPurchasePrice()));
+                }
+                else if(InternalDataBase.getInstance(context).getCartType().equals("Sale")){
+                    holder.cartItemPrice.setText(String.valueOf(cartItem.getSellingPrice()));
+                    holder.cartItemTotal.setText(String.valueOf(cartModel.getProductTotal()));
+                } else {
+                    Log.d(TAG, "onBindViewHolder: noType");
+                }
 
-                holder.cartItemTotal.setText(String.valueOf(cartModel.getProductTotal()));
+                holder.cartItemName.setText(cartItem.getName());
+                holder.cartItemUnits.setText(cartItem.getUnits());
+                //holder.cartItemTotal.setText(String.valueOf(cartModel.getProductTotal()));
                 holder.cartQuantity.setText(String.valueOf(cartModel.getQuantity()));
 
                 Glide.with(context)

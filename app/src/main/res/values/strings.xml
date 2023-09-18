@@ -18,6 +18,7 @@
     <string name="report1">Sales</string>
     <string name="report2">Purchase</string>
     <string name="report3">Profit</string>
+    <string name="report4">Cash_Flow</string>
 
     <string name="reportDuration1">Daily</string>
     <string name="reportDuration2">Weekly</string>

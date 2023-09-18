@@ -52,7 +52,9 @@ public class MoneyTrackerAdapter extends RecyclerView.Adapter<MoneyTrackerAdapte
         String time = timeFormat.format(transaction.getTime());
         holder.time.setText(time);
         trackingMoneyTotal += transaction.getTotalAmount();
-        holder.amount.setText(String.valueOf(trackingMoneyTotal));
+        holder.accumulatingAmount.setText(String.valueOf(trackingMoneyTotal));
+        holder.transactionAmount.setText(String.valueOf(transaction.getTotalAmount()));
+        holder.transactionType.setText(transaction.getTransactionType());
     }
 
     @Override
@@ -62,12 +64,14 @@ public class MoneyTrackerAdapter extends RecyclerView.Adapter<MoneyTrackerAdapte
 
     public static class MyViewHolder extends RecyclerView.ViewHolder{
 
-        TextView time, amount;
+        TextView time, accumulatingAmount, transactionType, transactionAmount;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             time = itemView.findViewById(R.id.trackTransactionTime);
-            amount = itemView.findViewById(R.id.trackTransactionCash);
+            accumulatingAmount = itemView.findViewById(R.id.trackTransactionCash);
+            transactionType = itemView.findViewById(R.id.transactionType);
+            transactionAmount = itemView.findViewById(R.id.trackingTransactionAmount);
         }
     }
 }

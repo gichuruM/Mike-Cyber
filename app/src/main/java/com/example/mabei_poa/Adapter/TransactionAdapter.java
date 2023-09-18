@@ -73,7 +73,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             }
         }
 
-        TransactionCartProductAdapter adapter = new TransactionCartProductAdapter(context,productsList,cartDetails);
+        TransactionCartProductAdapter adapter = new TransactionCartProductAdapter(context,productsList,cartDetails,transaction.getTransactionType());
 
         holder.recyclerView.setAdapter(adapter);
         holder.recyclerView.setLayoutManager(new LinearLayoutManager(context));
