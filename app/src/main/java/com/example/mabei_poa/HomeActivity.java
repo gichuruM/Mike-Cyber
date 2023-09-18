@@ -61,6 +61,8 @@ public class HomeActivity extends AppCompatActivity{
         setContentView(binding.getRoot());
 
         Objects.requireNonNull(getSupportActionBar()).hide();
+        //Resetting the cartType to noType
+        InternalDataBase.getInstance(HomeActivity.this).setCartType("noType");
 
         binding.products.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,7 +83,9 @@ public class HomeActivity extends AppCompatActivity{
         binding.saleToCustomer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(HomeActivity.this,SaleToCustomerActivity.class));
+                Intent intent = new Intent(HomeActivity.this,SaleToCustomerActivity.class);
+                InternalDataBase.getInstance(HomeActivity.this).setCartType("Sale");
+                startActivity(intent);
             }
         });
 
@@ -194,6 +198,17 @@ public class HomeActivity extends AppCompatActivity{
                 startActivity(intent);
             }
         });
+
+        purchaseFromVendor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomSheetDialog.cancel();
+                
+                Intent intent = new Intent(HomeActivity.this,SaleToCustomerActivity.class);
+                InternalDataBase.getInstance(HomeActivity.this).setCartType("Purchase");
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -205,11 +220,6 @@ public class HomeActivity extends AppCompatActivity{
             binding.syncUnsavedData.setVisibility(View.VISIBLE);
         else
             binding.syncUnsavedData.setVisibility(View.GONE);
-        //Finding out about network capabilities
-//        if(checkConnection(HomeActivity.this))
-//            Toast.makeText(this, "Connected to internet", Toast.LENGTH_SHORT).show();
-//        else
-//            Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show();
     }
 
     public static boolean checkConnection(Context context) {

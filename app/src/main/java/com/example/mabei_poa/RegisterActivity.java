@@ -10,6 +10,8 @@ import android.widget.Toast;
 import com.example.mabei_poa.databinding.ActivityRegisterBinding;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.util.Objects;
+
 public class RegisterActivity extends AppCompatActivity {
 
     ActivityRegisterBinding  binding;
@@ -21,7 +23,7 @@ public class RegisterActivity extends AppCompatActivity {
         binding = ActivityRegisterBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        getSupportActionBar().hide();
+        Objects.requireNonNull(getSupportActionBar()).hide();
 
         binding.btnLoginSubmit.setOnClickListener(new View.OnClickListener() {
             @Override

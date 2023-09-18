@@ -24,11 +24,13 @@ public class TransactionCartProductAdapter extends RecyclerView.Adapter<Transact
     private Context context;
     private ArrayList<ProductModel> productModels;
     private Map<String, Double> cartItemDetails;
+    private String transactionType;
 
-    public TransactionCartProductAdapter(Context context, ArrayList<ProductModel> productModels, Map<String, Double> cartItemDetails) {
+    public TransactionCartProductAdapter(Context context, ArrayList<ProductModel> productModels, Map<String, Double> cartItemDetails, String transactionType) {
         this.context = context;
         this.productModels = productModels;
         this.cartItemDetails = cartItemDetails;
+        this.transactionType = transactionType;
     }
 
     @NonNull
@@ -43,10 +45,16 @@ public class TransactionCartProductAdapter extends RecyclerView.Adapter<Transact
         ProductModel product = productModels.get(position);
         //Log.d(TAG, "onBindViewHolder: Transaction cartModel size "+cartModels.size());
         holder.transactionProductName.setText(product.getName());
-        holder.transactionProductPrice.setText(String.valueOf(product.getSellingPrice()));
         holder.transactionProductQty.setText(String.valueOf(cartItemDetails.get(product.getId())));
         holder.transactionProductUnits.setText(product.getUnits());
-        holder.transactionProductAmount.setText(String.valueOf(cartItemDetails.get(product.getId())*product.getSellingPrice()));
+
+        if(transactionType.equals("Purchase")){
+            holder.transactionProductPrice.setText(String.valueOf(product.getPurchasePrice()));
+            holder.transactionProductAmount.setText(String.valueOf(cartItemDetails.get(product.getId())*product.getPurchasePrice()));
+        } else if(transactionType.equals("Sale")){
+            holder.transactionProductPrice.setText(String.valueOf(product.getSellingPrice()));
+            holder.transactionProductAmount.setText(String.valueOf(cartItemDetails.get(product.getId())*product.getSellingPrice()));
+        }
     }
 
     @Override

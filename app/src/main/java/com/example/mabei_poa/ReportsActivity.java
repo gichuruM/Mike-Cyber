@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class ReportsActivity extends AppCompatActivity {
 
@@ -46,7 +47,7 @@ public class ReportsActivity extends AppCompatActivity {
         binding = ActivityReportsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        getSupportActionBar().hide();
+        Objects.requireNonNull(getSupportActionBar()).hide();
         transactionReportList = new ArrayList<>();
 
         reportSettingType = getString(R.string.report1);
@@ -55,6 +56,7 @@ public class ReportsActivity extends AppCompatActivity {
         reportType.add(getString(R.string.report1));
         reportType.add(getString(R.string.report2));
         reportType.add(getString(R.string.report3));
+        reportType.add(getString(R.string.report4));
 
         ArrayList<String> reportDuration = new ArrayList<>();
         reportDuration.add(getString(R.string.reportDuration1));
@@ -84,8 +86,10 @@ public class ReportsActivity extends AppCompatActivity {
                     binding.reportTvType.setText("Revenue");
                 else if(reportSettingType == getString(R.string.report3))
                     binding.reportTvType.setText("Profit");
-                else if(reportSettingType == getString(R.string.report2))
+                else if(Objects.equals(reportSettingType, getString(R.string.report2)))
                     binding.reportTvType.setText("Purchase");
+                else if(Objects.equals(reportSettingType, getString(R.string.report4)))
+                    binding.reportTvType.setText("Cash Flow");
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -131,21 +135,33 @@ public class ReportsActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         List<DocumentSnapshot> documentSnapshots = queryDocumentSnapshots.getDocuments();
-                        double revenue = 0, profit = 0;
+                        double revenue = 0, profit = 0, purchases = 0, cashFlow = 0;
 
                         for(DocumentSnapshot ds: documentSnapshots){
                             TransactionModel transaction = ds.toObject(TransactionModel.class);
                             if(dateFormat.format(transaction.getTime()).equals(datePicked)){
-                                transactionReportList.add(transaction);
-                                if(reportSettingType == getString(R.string.report1))
+                                if(Objects.equals(reportSettingType, getString(R.string.report1)) &&
+                                    transaction.getTransactionType().equals("Sale")){
+                                    transactionReportList.add(transaction);
                                     revenue += transaction.getTotalAmount();
-                                else if(reportSettingType == getString(R.string.report3)) {
-                                    //additions of profit
+                                }
+                                else if(Objects.equals(reportSettingType, getString(R.string.report3)) &&
+                                        transaction.getTransactionType().equals("Sale")) {
+                                    transactionReportList.add(transaction);
                                     profit += transaction.getProfit();
+                                }
+                                else if(Objects.equals(reportSettingType, getString(R.string.report2)) &&
+                                        transaction.getTransactionType().equals("Purchase")){
+                                    transactionReportList.add(transaction);
+                                    purchases += transaction.getTotalAmount();
+                                }
+                                else if(Objects.equals(reportSettingType, getString(R.string.report4))){
+                                    transactionReportList.add(transaction);
+                                    cashFlow += transaction.getTotalAmount();
                                 }
                             }
                         }
-                        //Log.d(TAG, "onSuccess: size "+transactionReportList.size());
+                        Log.d(TAG, "onSuccess: size "+transactionReportList.size());
                         ReportDataAdapter adapter = new ReportDataAdapter(transactionReportList);
 
                         binding.reportRecView.setLayoutManager(new LinearLayoutManager(ReportsActivity.this));
@@ -153,11 +169,14 @@ public class ReportsActivity extends AppCompatActivity {
                         binding.reportRecView.setAdapter(adapter);
                         adapter.notifyDataSetChanged();
 
-                        if(reportSettingType == getString(R.string.report1))
+                        if(Objects.equals(reportSettingType, getString(R.string.report1)))
                             binding.reportRevenue.setText(String.valueOf(revenue));
-                        else if(reportSettingType == getString(R.string.report3)) {
+                        else if(Objects.equals(reportSettingType, getString(R.string.report3)))
                             binding.reportRevenue.setText(String.format("%.1f",profit));
-                        }
+                        else if(Objects.equals(reportSettingType, getString(R.string.report2)))
+                            binding.reportRevenue.setText(String.valueOf(-purchases));
+                        else if(Objects.equals(reportSettingType, getString(R.string.report4)))
+                            binding.reportRevenue.setText(String.valueOf(cashFlow));
 
                         progressDialog.dismiss();
                     }

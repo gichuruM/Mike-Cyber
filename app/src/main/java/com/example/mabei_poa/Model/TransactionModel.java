@@ -15,11 +15,12 @@ public class TransactionModel implements Serializable {
     private String paymentMethod;
     private String note;
     private double profit;
+    private String transactionType;
 
     public TransactionModel() {
     }
 
-    public TransactionModel(String transactionId, Date time, Map<String, Double> cartDetails, double totalAmount, double receivedAmount, double changeAmount, String paymentMethod, String note, double profit) {
+    public TransactionModel(String transactionId, Date time, Map<String, Double> cartDetails, double totalAmount, double receivedAmount, double changeAmount, String paymentMethod, String note, double profit, String transactionType) {
         this.transactionId = transactionId;
         this.time = time;
         this.cartDetails = cartDetails;
@@ -29,6 +30,15 @@ public class TransactionModel implements Serializable {
         this.paymentMethod = paymentMethod;
         this.note = note;
         this.profit = profit;
+        this.transactionType = transactionType;
+    }
+
+    public String getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(String transactionType) {
+        this.transactionType = transactionType;
     }
 
     public String getTransactionId() {

@@ -45,7 +45,7 @@ public class ReportDataAdapter extends RecyclerView.Adapter<ReportDataAdapter.My
         Map<String, Double> cartDetails = transactionModel.getCartDetails();
 
         holder.reportItemNum.setText(String.valueOf(cartDetails.size()));
-        if(reportSettingType.equals("Sales"))
+        if(reportSettingType.equals("Sales") || reportSettingType.equals("Purchase") || reportSettingType.equals("Cash_Flow"))
             holder.reportAmountTotal.setText(String.valueOf(transactionModel.getTotalAmount()));
         else if(reportSettingType.equals("Profit")){
             double profit =  transactionModel.getProfit();

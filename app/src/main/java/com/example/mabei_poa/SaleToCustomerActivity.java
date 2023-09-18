@@ -282,7 +282,11 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
             if(cartModel.getProductId().equals(p.getId())){
                 found = true;
                 cartModel.setQuantity(Double.parseDouble(text));
-                long productTotal = Math.round(cartModel.getQuantity()*p.getSellingPrice());
+                long productTotal = 0;
+                if(InternalDataBase.getInstance(this).getCartType().equals("Purchase"))
+                    productTotal = Math.round(cartModel.getQuantity()*p.getPurchasePrice());
+                else if(InternalDataBase.getInstance(this).getCartType().equals("Sale"))
+                    productTotal = Math.round(cartModel.getQuantity()*p.getSellingPrice());
                 cartModel.setProductTotal((double) productTotal);
                 view.setText(String.valueOf(productTotal));
                 totalCartAmount();
