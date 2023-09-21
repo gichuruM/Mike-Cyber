@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class SaleToCustomerActivity extends AppCompatActivity implements CartItemClickedInterface{
 
@@ -220,41 +221,49 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
 
         if(cartProductsList.size() > 0){
             for(ProductModel p: scanningArray){
-                if(scannedBarcode.equals(String.valueOf(p.getBarcodeNum())) || barcode == p.getBarcodeNum()){
-                    boolean inCart = false;
+                Map<String, Double> productBarcodes = p.getBarcodes();
 
-                    int pos = -1;
-                    for(CartModel c: cartProductsList){
-                        pos++;
-                        if(c.getProductId().equals(p.getId())){
-                            double quantity = c.getQuantity() + 1;
-                            Toast.makeText(this, "Product already in cart quantity "+quantity, Toast.LENGTH_SHORT).show();
-                            cartProductsList.remove(cartProductsList.get(pos));
-                            cartAdapter.notifyItemRemoved(pos);
+                for(String key: productBarcodes.keySet()){
+                    if(scannedBarcode.equals(key) || barcode == Long.parseLong(key)){
+                        boolean inCart = false;
 
-                            CartModel cartModel = new CartModel(p.getId(),quantity,p.getSellingPrice()*quantity);
-                            cartProductsList.add(pos, cartModel);
+                        int pos = -1;
+                        for(CartModel c: cartProductsList){
+                            pos++;
+                            if(c.getProductId().equals(p.getId())){
+                                double quantity = c.getQuantity() + productBarcodes.get(key);
+                                Toast.makeText(this, "Product already in cart quantity "+quantity, Toast.LENGTH_SHORT).show();
+                                cartProductsList.remove(cartProductsList.get(pos));
+                                cartAdapter.notifyItemRemoved(pos);
+
+                                CartModel cartModel = new CartModel(p.getId(),quantity,p.getSellingPrice()*quantity);
+                                cartProductsList.add(pos, cartModel);
+                                cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
+                                binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
+                                inCart = true;
+                                break;
+                            }
+                        }
+
+                        if(!inCart){
+                            CartModel cartModel = new CartModel(p.getId(),productBarcodes.get(key),p.getSellingPrice());
+                            cartProductsList.add(cartModel);
                             cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
                             binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
-                            inCart = true;
-                            break;
                         }
-                    }
-
-                    if(!inCart){
-                        CartModel cartModel = new CartModel(p.getId(),1,p.getSellingPrice());
-                        cartProductsList.add(cartModel);
-                        cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
-                        binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
                     }
                 }
             }
         } else {
             for(ProductModel p: scanningArray) {
-                if (scannedBarcode.equals(String.valueOf(p.getBarcodeNum())) || barcode == p.getBarcodeNum()){
-                    CartModel cartModel = new CartModel(p.getId(),1,p.getSellingPrice());
-                    cartProductsList.add(cartModel);
-                    cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
+                Map<String, Double> productBarcodes = p.getBarcodes();
+
+                for(String key: productBarcodes.keySet()){
+                    if(scannedBarcode.equals(key) || barcode == Long.parseLong(key)){
+                        CartModel cartModel = new CartModel(p.getId(),productBarcodes.get(key),p.getSellingPrice());
+                        cartProductsList.add(cartModel);
+                        cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
+                    }
                 }
             }
         }
