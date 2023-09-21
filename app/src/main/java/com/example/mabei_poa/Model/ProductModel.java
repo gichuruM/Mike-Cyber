@@ -1,6 +1,7 @@
 package com.example.mabei_poa.Model;
 
 import java.io.Serializable;
+import java.util.Map;
 
 public class ProductModel implements Serializable {
 
@@ -12,12 +13,12 @@ public class ProductModel implements Serializable {
     private double sellingPrice;
     private double quantity;
     private String units;
-    private long barcodeNum;
+    private Map<String, Double> barcodes;
 
     public ProductModel() {
     }
 
-    public ProductModel(String id, String name, String image, String category, double purchasePrice, double sellingPrice, double quantity, String units, long barcodeNum) {
+    public ProductModel(String id, String name, String image, String category, double purchasePrice, double sellingPrice, double quantity, String units, Map<String, Double> barcodes) {
         this.id = id;
         this.name = name;
         this.image = image;
@@ -26,7 +27,7 @@ public class ProductModel implements Serializable {
         this.sellingPrice = sellingPrice;
         this.quantity = quantity;
         this.units = units;
-        this.barcodeNum = barcodeNum;
+        this.barcodes = barcodes;
     }
 
     public String getImage() {
@@ -93,11 +94,11 @@ public class ProductModel implements Serializable {
         this.units = units;
     }
 
-    public long getBarcodeNum() {
-        return barcodeNum;
+    public Map<String, Double> getBarcodes() {
+        return barcodes;
     }
 
-    public void setBarcodeNum(long barcodeNum) {
-        this.barcodeNum = barcodeNum;
+    public void setBarcodes(Map<String, Double> barcodes) {
+        this.barcodes = barcodes;
     }
 }

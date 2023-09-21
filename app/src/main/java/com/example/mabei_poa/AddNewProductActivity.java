@@ -34,6 +34,8 @@ import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class AddNewProductActivity extends AppCompatActivity {
@@ -128,6 +130,20 @@ public class AddNewProductActivity extends AppCompatActivity {
                 scanBarcode();
             }
         });
+
+        binding.barcodeScanning2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                scanBarcode2();
+            }
+        });
+
+        binding.barcodeScanning3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                scanBarcode3();
+            }
+        });
         
         binding.newSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -138,19 +154,50 @@ public class AddNewProductActivity extends AppCompatActivity {
                 String sellingPrice = binding.sellingPrice.getText().toString();
                 String quantity = binding.quantity.getText().toString();
                 String barcodeNum = binding.barcodeNumber.getText().toString();
+                String barcodeNum2 = binding.barcodeNumber2.getText().toString();
+                String barcodeNum3 = binding.barcodeNumber3.getText().toString();
 
                 if(name.isEmpty() || purchasePrice.isEmpty() || sellingPrice.isEmpty() || quantity.isEmpty() || barcodeNum.isEmpty() || (imageUri == null && newProduct)){
                     Toast.makeText(AddNewProductActivity.this, "Enter all fields to proceed", Toast.LENGTH_SHORT).show();
                 } else {
                     ProductModel product;
 
+                    Map<String, Double> barcodes = new HashMap<>();
+
+                    barcodes.put(barcodeNum,1.0);
+                    if(!barcodeNum2.isEmpty())
+                        barcodes.put(barcodeNum2,0.5);
+                    if(!barcodeNum3.isEmpty())
+                        barcodes.put(barcodeNum3,0.25);
+
                     if(newProduct){
                         id = UUID.randomUUID().toString();
-                        product = new ProductModel(id,name,null,categoryPicked,Double.parseDouble(purchasePrice),Double.parseDouble(sellingPrice),Double.parseDouble(quantity),unitsPicked,Long.parseLong(barcodeNum));
+                        product = new ProductModel(id,name,null,categoryPicked,Double.parseDouble(purchasePrice),Double.parseDouble(sellingPrice),Double.parseDouble(quantity),unitsPicked,barcodes);
                         saveProductToServer(product);
                     } else {
                         DocumentReference documentReference = FirebaseFirestore.getInstance().collection("products").document(existingProduct.getId());
+                        //checking if any of the barcodes have been edited
+                        boolean barcodeChanged = false;
+                        Map<String, Double> existingBarcodes = existingProduct.getBarcodes();
+                        String existingKey = "",existingKey2 = "", existingKey3 ="";
 
+                        for(String key: existingBarcodes.keySet()){
+                            Double value = existingBarcodes.get(key);
+                            if(value == 1.0)
+                                existingKey = key;
+                            else if(value == 0.5)
+                                existingKey2 = key;
+                            else if(value == 0.25)
+                                existingKey3 = key;
+                        }
+
+                        if(!existingKey.equals(barcodeNum) || !existingKey2.equals(barcodeNum2) || !existingKey3.equals(barcodeNum3))
+                            barcodeChanged = true;
+
+                        if(barcodeChanged){
+                            Toast.makeText(AddNewProductActivity.this, "Barcode has changed", Toast.LENGTH_SHORT).show();
+                            documentReference.update("barcodes",barcodes);
+                        }
                         if(!existingProduct.getName().equals(name)){
                             Toast.makeText(AddNewProductActivity.this, "Name has changed", Toast.LENGTH_SHORT).show();
                             documentReference.update("name",name);
@@ -166,10 +213,6 @@ public class AddNewProductActivity extends AppCompatActivity {
                         if(existingProduct.getQuantity() != Double.parseDouble(quantity)){
                             Toast.makeText(AddNewProductActivity.this, "Quantity has changed", Toast.LENGTH_SHORT).show();
                             documentReference.update("quantity",Double.valueOf(quantity));
-                        }
-                        if(existingProduct.getBarcodeNum() != Long.parseLong(barcodeNum)){
-                            Toast.makeText(AddNewProductActivity.this, "Barcode has changed", Toast.LENGTH_SHORT).show();
-                            documentReference.update("barcodeNum",Long.valueOf(barcodeNum));
                         }
                         if(!existingProduct.getCategory().equals(categoryPicked)){
                             Toast.makeText(AddNewProductActivity.this, "Category picked has changed", Toast.LENGTH_SHORT).show();
@@ -303,7 +346,17 @@ public class AddNewProductActivity extends AppCompatActivity {
             iNum++;
         }
 
-        binding.barcodeNumber.setText(String.valueOf(existingProduct.getBarcodeNum()));
+        Map<String, Double> barcodes = existingProduct.getBarcodes();
+
+        for(String key: barcodes.keySet()){
+            Double value = barcodes.get(key);
+            if(value == 1.0)
+                binding.barcodeNumber.setText(key);
+            else if(value == 0.5)
+                binding.barcodeNumber2.setText(key);
+            else if(value == 0.25)
+                binding.barcodeNumber3.setText(key);
+        }
 
         Glide.with(this)
                 .load(existingProduct.getImage())
@@ -387,9 +440,39 @@ public class AddNewProductActivity extends AppCompatActivity {
         barLauncher.launch(options);
     }
 
+    private void scanBarcode2() {
+        ScanOptions options = new ScanOptions();
+        options.setPrompt("Volume up to flash on");
+        options.setOrientationLocked(true);
+        options.setBeepEnabled(true);
+        options.setCaptureActivity(ScanActivity.class);
+        barLauncher2.launch(options);
+    }
+
+    private void scanBarcode3() {
+        ScanOptions options = new ScanOptions();
+        options.setPrompt("Volume up to flash on");
+        options.setOrientationLocked(true);
+        options.setBeepEnabled(true);
+        options.setCaptureActivity(ScanActivity.class);
+        barLauncher3.launch(options);
+    }
+
     ActivityResultLauncher<ScanOptions> barLauncher = registerForActivityResult(new ScanContract(), result -> {
         if(result.getContents()!=null){
             binding.barcodeNumber.setText(result.getContents());
+        }
+    });
+
+    ActivityResultLauncher<ScanOptions> barLauncher2 = registerForActivityResult(new ScanContract(), result -> {
+        if(result.getContents()!=null){
+            binding.barcodeNumber2.setText(result.getContents());
+        }
+    });
+
+    ActivityResultLauncher<ScanOptions> barLauncher3 = registerForActivityResult(new ScanContract(), result -> {
+        if(result.getContents()!=null){
+            binding.barcodeNumber3.setText(result.getContents());
         }
     });
 }
