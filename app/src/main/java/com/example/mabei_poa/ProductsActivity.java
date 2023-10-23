@@ -14,6 +14,7 @@ import android.view.MenuItem;
 
 import com.example.mabei_poa.Adapter.AllProductsAdapter;
 import com.example.mabei_poa.Adapter.ViewPagerAdapter;
+import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.Model.CartModel;
 import com.example.mabei_poa.databinding.ActivityProductsBinding;
 import com.google.android.material.tabs.TabLayout;
@@ -72,6 +73,7 @@ public class ProductsActivity extends AppCompatActivity {
                         if(t.getProductId().equals(c.getProductId())){
                             //Log.d(TAG, "onBackPressed: Removing "+c.getProductModel().getName());
                             cartProductsList.remove(c);
+                            InternalDataBase.getInstance(this).setNewCart(cartProductsList);
                             break;
                         }
                     }

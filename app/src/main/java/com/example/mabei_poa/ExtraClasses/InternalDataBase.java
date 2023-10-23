@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.example.mabei_poa.Model.CartModel;
 import com.example.mabei_poa.Model.NoteModel;
 import com.example.mabei_poa.Model.ProductModel;
 import com.google.common.reflect.TypeToken;
@@ -26,6 +27,7 @@ public class InternalDataBase {
     public static String SYNC_STATUS = "SYNC_STATUS";
     public static String MONEY_TRACKING = "MONEY_TRACKING";
     public static String CART_TYPE = "CART_TYPE";
+    public static String PRODUCTS_IN_CART = "PRODUCTS_IN_CART";
 
     private static ArrayList<NoteModel> unsavedNotes;
 
@@ -51,6 +53,10 @@ public class InternalDataBase {
         }
         if(getCartType() == null){
             editor.putString(CART_TYPE,"noType");
+            editor.apply();
+        }
+        if(getCartType() == null){
+            editor.putString(PRODUCTS_IN_CART,gson.toJson(new ArrayList<CartModel>()));
             editor.apply();
         }
     }
@@ -200,6 +206,15 @@ public class InternalDataBase {
         editor.apply();
     }
 
+    public void setNewCart(ArrayList<CartModel> newCart){
+        SharedPreferences.Editor editor = sharedPref.edit();
+        Gson gson = new Gson();
+
+        editor.remove(PRODUCTS_IN_CART);
+        editor.putString(PRODUCTS_IN_CART,gson.toJson(newCart));
+        editor.apply();
+    }
+
     public boolean getSyncStatus(){
         return(sharedPref.getBoolean(SYNC_STATUS,false));
     }
@@ -221,6 +236,14 @@ public class InternalDataBase {
 
     public String getCartType() {
         return sharedPref.getString(CART_TYPE,"noType");
+    }
+
+    public ArrayList<CartModel> getCart(){
+        Type type = new TypeToken<ArrayList<CartModel>>(){}.getType();
+        String json = sharedPref.getString(PRODUCTS_IN_CART,"null");
+        Gson gson = new Gson();
+
+        return gson.fromJson(json,type);
     }
 
     public static InternalDataBase getInstance(Context context){

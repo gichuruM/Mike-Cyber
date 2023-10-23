@@ -1,9 +1,10 @@
 package com.example.mabei_poa.Adapter;
 
+import static com.example.mabei_poa.HomeActivity.SHOP_USER_UID;
+import static com.example.mabei_poa.HomeActivity.userUID;
 import static com.example.mabei_poa.ProductsActivity.TAG;
 import static com.example.mabei_poa.SaleToCustomerActivity.cartAdapter;
 import static com.example.mabei_poa.SaleToCustomerActivity.cartProductsList;
-
 
 import android.content.Context;
 import android.content.Intent;
@@ -17,12 +18,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.mabei_poa.AddNewProductActivity;
+import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.Model.CartModel;
 import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.ProductsActivity;
@@ -113,7 +116,6 @@ public class AllProductsAdapter extends RecyclerView.Adapter<AllProductsAdapter.
                 holder.productInCartMark.setVisibility(View.VISIBLE);
 //                Log.d(TAG, "onBindViewHolder: Name passing "+holder.productName.getText().toString());
             }
-
         }
 
         Glide.with(context)
@@ -124,39 +126,67 @@ public class AllProductsAdapter extends RecyclerView.Adapter<AllProductsAdapter.
             @Override
             public void onClick(View v) {
                 if(ProductsActivity.activityType.equals("Default")) {
-                    Intent intent = new Intent(context, AddNewProductActivity.class);
-                    intent.putExtra("model",productModel);
-                    context.startActivity(intent);
+                    if(userUID.equals(SHOP_USER_UID))
+                        Toast.makeText(context, "Access denied", Toast.LENGTH_SHORT).show();
+                    else{
+                        Intent intent = new Intent(context, AddNewProductActivity.class);
+                        intent.putExtra("model",productModel);
+                        context.startActivity(intent);
+                    }
                 } else if(ProductsActivity.activityType.equals("Cart")){
 
-                    boolean inCart = false;
+                    boolean restricted = false;
 
-                    for(CartModel p: cartProductsList){
-                        if(p.getProductId().equals(productModel.getId())){
-                            inCart = true;
-                            int position = cartProductsList.indexOf(p);
-                            cartProductsList.remove(p);
-                            cartAdapter.notifyItemRemoved(position);
-                            holder.productInCartMark.setVisibility(View.GONE);
+                    String[] allowedProducts = {
+                            "bfbcb65e-0245-4705-8598-dca56550aa99", "a4c56a3e-a2cf-4a67-99f1-72e623ddb3b9",
+                            "010c8495-2737-4467-9d1b-e9c17df48266", "1dadc5ab-27df-4d33-b949-8488d4651611",
+                            "01d8c835-3e9a-4ea8-ad45-2eb50bb2331c"};
 
-                            for(CartModel c: temporaryCartList){
-                                if(c.getProductId().equals(productModel.getId())){
-                                    temporaryCartList.remove(c);
-                                    break;
-                                }
+                    //Restricting shop account from handling purchases of various products
+                    if(InternalDataBase.getInstance(context).getCartType().equals("Purchase") &&
+                            userUID.equals(SHOP_USER_UID)){
+                        restricted = true;
+                        for(int i = 0; i < allowedProducts.length; i++){
+                            if(productModel.getId().equals(allowedProducts[i])){
+                                restricted = false;
+                                break;
                             }
-
-                            break;
                         }
                     }
+//                    Log.d(TAG, "onClick: "+"Name "+ productModel.getName()+" id "+productModel.getId());
+                    if(!restricted){
+                        boolean inCart = false;
 
-                    if(!inCart) {    //Not in cart therefore adding
-                        CartModel cartModel = new CartModel(productModel.getId(),1,productModel.getSellingPrice());
-                        cartProductsList.add(cartModel);
-                        cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
-                        holder.productInCartMark.setVisibility(View.VISIBLE);
-                        //Adding product to temp 
-                        temporaryCartList.add(cartModel);
+                        for(CartModel p: cartProductsList){
+                            if(p.getProductId().equals(productModel.getId())){
+                                inCart = true;
+                                int position = cartProductsList.indexOf(p);
+                                cartProductsList.remove(p);
+                                cartAdapter.notifyItemRemoved(position);
+                                holder.productInCartMark.setVisibility(View.GONE);
+
+                                for(CartModel c: temporaryCartList){
+                                    if(c.getProductId().equals(productModel.getId())){
+                                        temporaryCartList.remove(c);
+                                        break;
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+
+                        if(!inCart) {    //Not in cart therefore adding
+                            CartModel cartModel = new CartModel(productModel.getId(),1,productModel.getSellingPrice());
+                            cartProductsList.add(cartModel);
+                            cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
+                            holder.productInCartMark.setVisibility(View.VISIBLE);
+                            //Adding product to temp
+                            temporaryCartList.add(cartModel);
+                        }
+                        InternalDataBase.getInstance(context).setNewCart(cartProductsList);
+                    } else {
+                        Toast.makeText(context, "Access denied", Toast.LENGTH_SHORT).show();
                     }
                 }
             }

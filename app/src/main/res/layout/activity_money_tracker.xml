@@ -30,22 +30,23 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:weightSum="2.3">
+            android:weightSum="2">
 
-            <TextView
+            <Button
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Today's Date"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:id="@+id/todaysDateMoneyTracking"
-                android:textSize="18sp"/>
+                android:text="--/--/----"
+                android:id="@+id/btnTrackingDate"
+                android:textSize="18sp"
+                android:layout_marginRight="5dp"
+                android:backgroundTint="@color/teal_200"
+                android:textColor="@color/black"/>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_weight="0.7"
                 android:orientation="horizontal"
                 android:weightSum="1">
 
@@ -80,34 +81,6 @@
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:gravity="center"
-        android:id="@+id/layoutReportDateNext">
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="--/--/----"
-            android:id="@+id/btnTrackingDate"
-            android:textSize="18sp"
-            android:layout_marginRight="20sp"
-            android:backgroundTint="@color/teal_200"
-            android:textColor="@color/black"/>
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_navigate_next_24"
-            app:maxImageSize="35sp"
-            android:backgroundTint="@color/teal_200"
-            android:layout_marginLeft="20sp"
-            android:id="@+id/trackingSubmit"/>
-
-    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"

@@ -23,19 +23,13 @@ public class MoneyTrackerAdapter extends RecyclerView.Adapter<MoneyTrackerAdapte
     private ArrayList<TransactionModel> transactionModels;
     private SimpleDateFormat timeFormat;
     private String datePicked;
-    private double trackingMoneyTotal = 0;
+    private int trackingMoneyTotal = 0;
 
-    public MoneyTrackerAdapter(Context context, ArrayList<TransactionModel> transactionModels, String datePicked) {
+    public MoneyTrackerAdapter(Context context, ArrayList<TransactionModel> transactionModels, int trackingMoneyTotal) {
         this.context = context;
         this.transactionModels = transactionModels;
-        this.datePicked = datePicked;
+        this.trackingMoneyTotal = trackingMoneyTotal;
         timeFormat = new SimpleDateFormat("h:mm a");
-        Map<String, Integer> tracking = InternalDataBase.getInstance(context).getTrackingData();
-        if(tracking.containsKey(datePicked)){
-            trackingMoneyTotal = tracking.get(datePicked).doubleValue();
-        } else {
-            trackingMoneyTotal = 1500;
-        }
     }
 
     @NonNull
@@ -51,8 +45,13 @@ public class MoneyTrackerAdapter extends RecyclerView.Adapter<MoneyTrackerAdapte
 
         String time = timeFormat.format(transaction.getTime());
         holder.time.setText(time);
-        trackingMoneyTotal += transaction.getTotalAmount();
-        holder.accumulatingAmount.setText(String.valueOf(trackingMoneyTotal));
+
+        int cumulativeTotal = 0;
+        for(int i = 0; i <= position; i++){
+            cumulativeTotal += transactionModels.get(i).getTotalAmount();
+        }
+        cumulativeTotal += trackingMoneyTotal;
+        holder.accumulatingAmount.setText(String.valueOf(cumulativeTotal));
         holder.transactionAmount.setText(String.valueOf(transaction.getTotalAmount()));
         holder.transactionType.setText(transaction.getTransactionType());
     }

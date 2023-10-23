@@ -28,7 +28,8 @@ public class RegisterActivity extends AppCompatActivity {
         binding.btnLoginSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                RegisterUser();
+                Toast.makeText(RegisterActivity.this, "Sorry, can't register new user", Toast.LENGTH_SHORT).show();
+                //RegisterUser();
             }
         });
 

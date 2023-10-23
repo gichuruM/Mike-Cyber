@@ -12,13 +12,14 @@ public class ProductModel implements Serializable {
     private double purchasePrice;
     private double sellingPrice;
     private double quantity;
+    private double lowStockAlert;
     private String units;
     private Map<String, Double> barcodes;
 
     public ProductModel() {
     }
 
-    public ProductModel(String id, String name, String image, String category, double purchasePrice, double sellingPrice, double quantity, String units, Map<String, Double> barcodes) {
+    public ProductModel(String id, String name, String image, String category, double purchasePrice, double sellingPrice, double quantity, double lowStockAlert, String units, Map<String, Double> barcodes) {
         this.id = id;
         this.name = name;
         this.image = image;
@@ -26,8 +27,17 @@ public class ProductModel implements Serializable {
         this.purchasePrice = purchasePrice;
         this.sellingPrice = sellingPrice;
         this.quantity = quantity;
+        this.lowStockAlert = lowStockAlert;
         this.units = units;
         this.barcodes = barcodes;
+    }
+
+    public double getLowStockAlert() {
+        return lowStockAlert;
+    }
+
+    public void setLowStockAlert(double lowStockAlert) {
+        this.lowStockAlert = lowStockAlert;
     }
 
     public String getImage() {
