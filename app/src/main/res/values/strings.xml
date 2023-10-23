@@ -18,10 +18,14 @@
     <string name="report1">Sales</string>
     <string name="report2">Purchase</string>
     <string name="report3">Profit</string>
-    <string name="report4">Cash_Flow</string>
+    <string name="report4">Cash Flow</string>
+    <string name="report5">Shop Profit</string>
 
     <string name="reportDuration1">Daily</string>
     <string name="reportDuration2">Weekly</string>
     <string name="reportDuration3">Monthly</string>
+
+    <string name="costOfBuying">Cost of Buying</string>
+    <string name="costOfSelling">Cost of Selling</string>
 
 </resources>

@@ -45,11 +45,15 @@ public class ReportDataAdapter extends RecyclerView.Adapter<ReportDataAdapter.My
         Map<String, Double> cartDetails = transactionModel.getCartDetails();
 
         holder.reportItemNum.setText(String.valueOf(cartDetails.size()));
-        if(reportSettingType.equals("Sales") || reportSettingType.equals("Purchase") || reportSettingType.equals("Cash_Flow"))
+        if(reportSettingType.equals("Sales") || reportSettingType.equals("Purchase") || reportSettingType.equals("Cash Flow"))
             holder.reportAmountTotal.setText(String.valueOf(transactionModel.getTotalAmount()));
         else if(reportSettingType.equals("Profit")){
             double profit =  transactionModel.getProfit();
             holder.reportAmountTotal.setText(String.format("%.1f", profit));
+        }
+        else if(reportSettingType.equals("Shop Profit")){
+            double waterLess =  transactionModel.getWaterlessProfit();
+            holder.reportAmountTotal.setText(String.format("%.1f", waterLess));
         }
     }
 

@@ -57,15 +57,19 @@ public class CheckOutActivity extends AppCompatActivity {
         binding.receivedAmount.setText("");
         binding.receivedAmount.requestFocus();
 
-        for(CartModel c: cartProductsList){
-            ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(this).getAllProducts();
-            for(ProductModel p: allProducts){
-                if(c.getProductId().equals(p.getId())){
-                    Log.d(TAG, "onCreate: Name "+p.getName()+" quantity "+p.getQuantity());
-                }
-            }
-        }
+//        ArrayList<CartModel> savedList = InternalDataBase.getInstance(this).getCart();
+//        for(CartModel sl: savedList){
+//            Log.d(TAG, "onCreate: Saved list: "+sl.getProductTotal());
+//        }
 
+//        for(CartModel c: cartProductsList){
+//            ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(this).getAllProducts();
+//            for(ProductModel p: allProducts){
+//                if(c.getProductId().equals(p.getId())){
+//                    Log.d(TAG, "onCreate: Name "+p.getName()+" quantity "+p.getQuantity());
+//                }
+//            }
+//        }
         binding.autofillReceivedAmount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,7 +104,7 @@ public class CheckOutActivity extends AppCompatActivity {
                         break;
                     case R.id.tillPayment: payment = "Pochi";
                         break;
-                    case R.id.cashTillPayment: payment = "cash and Pochi";
+                    case R.id.cashTillPayment: payment = "Both";
                         break;
                     default: payment = "None";
                 }
@@ -117,11 +121,15 @@ public class CheckOutActivity extends AppCompatActivity {
                     Date transactionTime = new Date();
                     double receivedAmount = Double.parseDouble(binding.receivedAmount.getText().toString());
                     double total = totalAmount;
-                    double totalProfit = 0;
+                    double totalProfit = 0, nonWaterProfit = 0;
 
                     double changeAmount = Double.parseDouble(binding.customersChange.getText().toString());
                     String note = binding.transactionNote.getText().toString();
                     String randomId = UUID.randomUUID().toString();
+
+                    //rounding off total amount to 2 decimal places
+                    total = Math.round(total * 100)/100;
+                    Log.d(TAG, "onClick: interim total "+total);
 
                     //Thread for changing the quantity of items after a sale
                     handlerThread.start();
@@ -148,10 +156,26 @@ public class CheckOutActivity extends AppCompatActivity {
                             for(ProductModel p: allProducts){
                                 if(c.getProductId().equals(p.getId())){
                                     //Adjusting quantity after transaction
-                                    ChangingQuantityRunnable editQuantity = new ChangingQuantityRunnable(CheckOutActivity.this,p.getId(),p.getQuantity()-c.getQuantity());
+                                    double adjustedQty = Math.round((p.getQuantity() - c.getQuantity()) * 100);
+                                    adjustedQty = adjustedQty/100;
+                                    Log.d(TAG, "onClick: adjusted qty "+adjustedQty);
+                                    ChangingQuantityRunnable editQuantity = new ChangingQuantityRunnable(CheckOutActivity.this,p.getId(),adjustedQty);
                                     handler.post(editQuantity);
 
-                                    totalProfit += (p.getSellingPrice() - p.getPurchasePrice())*c.getQuantity();
+                                    //totalProfit += (p.getSellingPrice() - p.getPurchasePrice())*c.getQuantity();
+                                    double productTotalSelling = Math.round(p.getSellingPrice()*c.getQuantity());
+                                    double productTotalBuying = p.getPurchasePrice()*c.getQuantity();
+
+                                    int remainder = (int) (productTotalSelling % 5);
+                                    if(remainder != 0)
+                                        productTotalSelling += (5 - remainder);
+                                    
+                                    totalProfit += (productTotalSelling - productTotalBuying);
+                                    //Calculating the non-water profit
+                                    if(!(c.getProductId().equals("61cfbdc7-63fa-4012-9f1f-220f2e0d0863") ||
+                                        c.getProductId().equals("53fbab78-2f31-40c9-b4bb-690096416bc7"))){
+                                        nonWaterProfit += (productTotalSelling - productTotalBuying);
+                                    }
                                 }
                             }
                         }
@@ -167,7 +191,7 @@ public class CheckOutActivity extends AppCompatActivity {
 
                     TransactionModel transaction = new TransactionModel(randomId,transactionTime,
                             cartDetails,total,receivedAmount,changeAmount,payment,note,totalProfit,
-                            InternalDataBase.getInstance(CheckOutActivity.this).getCartType());
+                            InternalDataBase.getInstance(CheckOutActivity.this).getCartType(),nonWaterProfit);
 
                     //Log.d(TAG, "onClick: saving initially "+InternalDataBase.getInstance(CheckOutActivity.this).getUnsavedNotes().size());
                     new Thread(new Runnable() {

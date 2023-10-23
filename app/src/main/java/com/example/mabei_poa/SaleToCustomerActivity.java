@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import io.grpc.Internal;
+
 public class SaleToCustomerActivity extends AppCompatActivity implements CartItemClickedInterface{
 
     static ActivitySaleToCustomerBinding binding;
@@ -151,6 +153,16 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
             super.onBackPressed();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(InternalDataBase.getInstance(this).getCart().size() != cartProductsList.size()){
+            Toast.makeText(this, "Products would have been lost!", Toast.LENGTH_SHORT).show();
+            cartProductsList = InternalDataBase.getInstance(this).getCart();
+            cartAdapter.notifyDataSetChanged();
+        }
+    }
+
     public static void totalCartAmount(){
         TextView totalCartAmount;
 
@@ -251,6 +263,7 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                             cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
                             binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
                         }
+                        InternalDataBase.getInstance(this).setNewCart(cartProductsList);
                     }
                 }
             }
@@ -262,6 +275,7 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                     if(scannedBarcode.equals(key) || barcode == Long.parseLong(key)){
                         CartModel cartModel = new CartModel(p.getId(),productBarcodes.get(key),p.getSellingPrice());
                         cartProductsList.add(cartModel);
+                        InternalDataBase.getInstance(this).setNewCart(cartProductsList);
                         cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
                     }
                 }
@@ -272,6 +286,7 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
     @Override
     public void onItemClick(int position) {
         cartProductsList.remove(cartProductsList.get(position));
+        InternalDataBase.getInstance(this).setNewCart(cartProductsList);
         cartAdapter.notifyItemRemoved(position);
         totalCartAmount();
     }
@@ -294,8 +309,15 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                 long productTotal = 0;
                 if(InternalDataBase.getInstance(this).getCartType().equals("Purchase"))
                     productTotal = Math.round(cartModel.getQuantity()*p.getPurchasePrice());
-                else if(InternalDataBase.getInstance(this).getCartType().equals("Sale"))
+                else if(InternalDataBase.getInstance(this).getCartType().equals("Sale")){
                     productTotal = Math.round(cartModel.getQuantity()*p.getSellingPrice());
+
+                    //Rounding up the total to the nearest multiple of 5
+                    int remainder = (int) (productTotal % 5);
+                    if(remainder != 0)
+                        productTotal += (5 - remainder);
+                }
+
                 cartModel.setProductTotal((double) productTotal);
                 view.setText(String.valueOf(productTotal));
                 totalCartAmount();

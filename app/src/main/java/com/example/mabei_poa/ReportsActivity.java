@@ -56,6 +56,7 @@ public class ReportsActivity extends AppCompatActivity {
         reportType.add(getString(R.string.report1));
         reportType.add(getString(R.string.report2));
         reportType.add(getString(R.string.report3));
+        reportType.add(getString(R.string.report5));
         reportType.add(getString(R.string.report4));
 
         ArrayList<String> reportDuration = new ArrayList<>();
@@ -82,14 +83,8 @@ public class ReportsActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 reportSettingType = reportType.get(position);
-                if(reportSettingType == getString(R.string.report1))
-                    binding.reportTvType.setText("Revenue");
-                else if(reportSettingType == getString(R.string.report3))
-                    binding.reportTvType.setText("Profit");
-                else if(Objects.equals(reportSettingType, getString(R.string.report2)))
-                    binding.reportTvType.setText("Purchase");
-                else if(Objects.equals(reportSettingType, getString(R.string.report4)))
-                    binding.reportTvType.setText("Cash Flow");
+
+                binding.reportTvType.setText(reportSettingType);
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -135,7 +130,7 @@ public class ReportsActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         List<DocumentSnapshot> documentSnapshots = queryDocumentSnapshots.getDocuments();
-                        double revenue = 0, profit = 0, purchases = 0, cashFlow = 0;
+                        double revenue = 0, profit = 0, purchases = 0, cashFlow = 0, waterLessProfit = 0;
 
                         for(DocumentSnapshot ds: documentSnapshots){
                             TransactionModel transaction = ds.toObject(TransactionModel.class);
@@ -159,6 +154,11 @@ public class ReportsActivity extends AppCompatActivity {
                                     transactionReportList.add(transaction);
                                     cashFlow += transaction.getTotalAmount();
                                 }
+                                else if(Objects.equals(reportSettingType, getString(R.string.report5)) &&
+                                        transaction.getTransactionType().equals("Sale")){
+                                    transactionReportList.add(transaction);
+                                    waterLessProfit += transaction.getWaterlessProfit();
+                                }
                             }
                         }
                         Log.d(TAG, "onSuccess: size "+transactionReportList.size());
@@ -177,6 +177,8 @@ public class ReportsActivity extends AppCompatActivity {
                             binding.reportRevenue.setText(String.valueOf(-purchases));
                         else if(Objects.equals(reportSettingType, getString(R.string.report4)))
                             binding.reportRevenue.setText(String.valueOf(cashFlow));
+                        else if(Objects.equals(reportSettingType, getString(R.string.report5)))
+                            binding.reportRevenue.setText(String.format("%.1f",waterLessProfit));
 
                         progressDialog.dismiss();
                     }

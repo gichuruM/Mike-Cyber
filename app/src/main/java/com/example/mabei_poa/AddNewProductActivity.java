@@ -1,5 +1,7 @@
 package com.example.mabei_poa;
 
+import static com.example.mabei_poa.ProductsActivity.TAG;
+
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -12,6 +14,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -153,11 +156,13 @@ public class AddNewProductActivity extends AppCompatActivity {
                 String purchasePrice = binding.purchasePrice.getText().toString().trim();
                 String sellingPrice = binding.sellingPrice.getText().toString();
                 String quantity = binding.quantity.getText().toString();
+                String lowAlert = binding.lowestStockQuantity.getText().toString();
                 String barcodeNum = binding.barcodeNumber.getText().toString();
                 String barcodeNum2 = binding.barcodeNumber2.getText().toString();
                 String barcodeNum3 = binding.barcodeNumber3.getText().toString();
 
-                if(name.isEmpty() || purchasePrice.isEmpty() || sellingPrice.isEmpty() || quantity.isEmpty() || barcodeNum.isEmpty() || (imageUri == null && newProduct)){
+                if(name.isEmpty() || purchasePrice.isEmpty() || sellingPrice.isEmpty() || quantity.isEmpty() ||
+                        barcodeNum.isEmpty() || lowAlert.isEmpty() || (imageUri == null && newProduct)){
                     Toast.makeText(AddNewProductActivity.this, "Enter all fields to proceed", Toast.LENGTH_SHORT).show();
                 } else {
                     ProductModel product;
@@ -172,7 +177,8 @@ public class AddNewProductActivity extends AppCompatActivity {
 
                     if(newProduct){
                         id = UUID.randomUUID().toString();
-                        product = new ProductModel(id,name,null,categoryPicked,Double.parseDouble(purchasePrice),Double.parseDouble(sellingPrice),Double.parseDouble(quantity),unitsPicked,barcodes);
+                        product = new ProductModel(id,name,null,categoryPicked,Double.parseDouble(purchasePrice),
+                                Double.parseDouble(sellingPrice),Double.parseDouble(quantity),Double.parseDouble(lowAlert),unitsPicked,barcodes);
                         saveProductToServer(product);
                     } else {
                         DocumentReference documentReference = FirebaseFirestore.getInstance().collection("products").document(existingProduct.getId());
@@ -197,6 +203,10 @@ public class AddNewProductActivity extends AppCompatActivity {
                         if(barcodeChanged){
                             Toast.makeText(AddNewProductActivity.this, "Barcode has changed", Toast.LENGTH_SHORT).show();
                             documentReference.update("barcodes",barcodes);
+                        }
+                        if(existingProduct.getLowStockAlert() != Double.parseDouble(lowAlert)){
+                            Toast.makeText(AddNewProductActivity.this, "Low Alert Qty has changed", Toast.LENGTH_SHORT).show();
+                            documentReference.update("lowStockAlert",Double.parseDouble(lowAlert));
                         }
                         if(!existingProduct.getName().equals(name)){
                             Toast.makeText(AddNewProductActivity.this, "Name has changed", Toast.LENGTH_SHORT).show();
@@ -335,6 +345,7 @@ public class AddNewProductActivity extends AppCompatActivity {
         binding.purchasePrice.setText(String.valueOf(existingProduct.getPurchasePrice()));
         binding.sellingPrice.setText(String.valueOf(existingProduct.getSellingPrice()));
         binding.quantity.setText(String.valueOf(existingProduct.getQuantity()));
+        binding.lowestStockQuantity.setText(String.valueOf(existingProduct.getLowStockAlert()));
 
         iNum = 0;
         for(String y: units){

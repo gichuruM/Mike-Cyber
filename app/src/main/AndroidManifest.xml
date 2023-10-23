@@ -13,6 +13,20 @@
         android:theme="@style/Theme.Mabei_Poa"
         tools:targetApi="31">
         <activity
+            android:name=".StockAnalysis"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".NewTransaction"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
             android:name=".MoneyTrackerActivity"
             android:exported="false">
             <meta-data

@@ -2,6 +2,7 @@ package com.example.mabei_poa.Fragment;
 
 import static com.example.mabei_poa.Adapter.AllProductsAdapter.temporaryCartList;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,6 +16,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.example.mabei_poa.Adapter.AllProductsAdapter;
@@ -27,6 +30,7 @@ import com.example.mabei_poa.SaleToCustomerActivity;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -40,6 +44,7 @@ public class AllProductsFragment extends Fragment {
     FloatingActionButton addProduct, finishSelecting;
     RecyclerView recyclerView;
     ArrayList<ProductModel> allProductsList;
+    SwitchMaterial lowStockSwitch;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -58,12 +63,24 @@ public class AllProductsFragment extends Fragment {
         recyclerView.setLayoutManager(new GridLayoutManager(getActivity(),3));
         recyclerView.setHasFixedSize(true);
 
+        lowStockSwitch = view.findViewById(R.id.lowStockSwitch);
+
+        //Stock switch has been turned on or off
+        lowStockSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                dataInitialization(isChecked);
+            }
+        });
+
         if(ProductsActivity.activityType.equals("Cart")){
             finishSelecting.setVisibility(View.VISIBLE);
             addProduct.setVisibility(View.GONE);
+            lowStockSwitch.setVisibility(View.GONE);
         } else if(ProductsActivity.activityType.equals("Default")){
             finishSelecting.setVisibility(View.GONE);
             addProduct.setVisibility(View.VISIBLE);
+            lowStockSwitch.setVisibility(View.VISIBLE);
         }
         //Log.d(TAG, "onViewCreated: on creation tempsize "+temporaryCartList.size());
         addProduct.setOnClickListener(new View.OnClickListener() {
@@ -87,12 +104,12 @@ public class AllProductsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if(ProductsActivity.activityType.equals("Default")){
-            dataInitialization();
+            dataInitialization(lowStockSwitch.isChecked());
         } else if(ProductsActivity.activityType.equals("Cart")){
             ArrayList<ProductModel> productsList = InternalDataBase.getInstance(getActivity()).getAllProducts();
 
             if(productsList == null)
-                dataInitialization();
+                dataInitialization(lowStockSwitch.isChecked());
             else {
                 ProductsActivity.productsAdapter = new AllProductsAdapter(getActivity());
 
@@ -107,7 +124,7 @@ public class AllProductsFragment extends Fragment {
         }
     }
 
-    private void dataInitialization() {
+    private void dataInitialization(boolean lowStock) {
         allProductsList = new ArrayList<>();
 
         ProgressDialog progressDialog = new ProgressDialog(getActivity());
@@ -120,13 +137,17 @@ public class AllProductsFragment extends Fragment {
                 .orderBy("name", Query.Direction.ASCENDING)
                 .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @SuppressLint("NotifyDataSetChanged")
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         List<DocumentSnapshot> dsList = queryDocumentSnapshots.getDocuments();
 
                         for(DocumentSnapshot ds: dsList){
                             ProductModel product = ds.toObject(ProductModel.class);
-                            allProductsList.add(product);
+                            if(!lowStock)
+                                allProductsList.add(product);
+                            else if(lowStock && product.getQuantity() <= product.getLowStockAlert())
+                                allProductsList.add(product);
                         }
 
                         ProductsActivity.productsAdapter = new AllProductsAdapter(getActivity());
@@ -140,6 +161,7 @@ public class AllProductsFragment extends Fragment {
                         ProductsActivity.productsAdapter.initializingFragmentArray();
                         
                         recyclerView.setAdapter(ProductsActivity.productsAdapter);
+                        ProductsActivity.productsAdapter.notifyDataSetChanged();
 
                         if(progressDialog.isShowing())
                             progressDialog.dismiss();

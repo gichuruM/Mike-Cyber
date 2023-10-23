@@ -1,14 +1,22 @@
 package com.example.mabei_poa;
 
+import static com.example.mabei_poa.HomeActivity.SHOP_USER_UID;
+import static com.example.mabei_poa.HomeActivity.userUID;
+import static com.example.mabei_poa.ProductsActivity.TAG;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.example.mabei_poa.Adapter.TransactionAdapter;
+import com.example.mabei_poa.Interface.TransactionClickedInterface;
 import com.example.mabei_poa.Model.TransactionModel;
 import com.example.mabei_poa.databinding.ActivityTransactionBinding;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -21,7 +29,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TransactionActivity extends AppCompatActivity {
+public class TransactionActivity extends AppCompatActivity implements TransactionClickedInterface {
 
     ActivityTransactionBinding binding;
     TransactionAdapter transactionAdapter;
@@ -61,7 +69,7 @@ public class TransactionActivity extends AppCompatActivity {
                             transactionModelList.add(transactionModel);
                         }
 
-                        transactionAdapter = new TransactionAdapter(TransactionActivity.this,transactionModelList);
+                        transactionAdapter = new TransactionAdapter(TransactionActivity.this,transactionModelList, TransactionActivity.this);
                         binding.transactionRecView.setAdapter(transactionAdapter);
                         transactionAdapter.notifyDataSetChanged();
                         progressDialog.dismiss();
@@ -74,5 +82,54 @@ public class TransactionActivity extends AppCompatActivity {
                         progressDialog.dismiss();
                     }
                 });
+    }
+
+    @Override
+    public void transactionClicked(int position) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Alert");
+        builder.setMessage("Are you sure you want to delete this transaction?");
+        String id = transactionModelList.get(position).getTransactionId();
+        Log.d(TAG, "transactionClicked: ID: "+id);
+
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if(userUID.equals(SHOP_USER_UID)){
+                    Toast.makeText(TransactionActivity.this, "Action Restricted", Toast.LENGTH_SHORT).show();
+                } else {
+                    transactionModelList.remove(position);
+                    transactionAdapter.notifyItemRemoved(position);
+
+                    FirebaseFirestore.getInstance()
+                            .collection("Transactions")
+                            .document(id)
+                            .delete()
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(TransactionActivity.this, "Transaction successfully deleted", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(TransactionActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
+                            });
+                }
+            }
+        }).show();
     }
 }

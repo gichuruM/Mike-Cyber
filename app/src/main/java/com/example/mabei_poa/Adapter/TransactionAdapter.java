@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mabei_poa.ExtraClasses.InternalDataBase;
+import com.example.mabei_poa.Interface.TransactionClickedInterface;
 import com.example.mabei_poa.Model.CartModel;
 import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.Model.TransactionModel;
@@ -29,18 +31,20 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
     private Context context;
     private ArrayList<TransactionModel> transactionModels;
+    private TransactionClickedInterface transactionClickedInterface;
     ArrayList<ProductModel> productsList = new ArrayList<>();
 
-    public TransactionAdapter(Context context, ArrayList<TransactionModel> transactionModels) {
+    public TransactionAdapter(Context context, ArrayList<TransactionModel> transactionModels, TransactionClickedInterface transactionClickedInterface) {
         this.context = context;
         this.transactionModels = transactionModels;
+        this.transactionClickedInterface = transactionClickedInterface;
     }
 
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.one_transaction_layout,parent,false);
-        return new MyViewHolder(view);
+        return new MyViewHolder(view, transactionClickedInterface);
     }
 
     @Override
@@ -54,6 +58,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.transactionChange.setText(String.valueOf(transaction.getChangeAmount()));
         holder.transactionTotal.setText(String.valueOf(transaction.getTotalAmount()));
         holder.transactionMethod.setText(transaction.getPaymentMethod());
+        holder.transactionType.setText(transaction.getTransactionType());
 
         if(transaction.getNote().isEmpty())
             holder.transactionNoteLayout.setVisibility(View.GONE);
@@ -88,10 +93,11 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     public static class MyViewHolder extends RecyclerView.ViewHolder{
 
         LinearLayout transactionNoteLayout;
-        TextView transactionDateTime, transactionReceivedAmount, transactionTotal, transactionChange, transactionMethod, transactionNote;
+        TextView transactionDateTime, transactionReceivedAmount, transactionTotal, transactionChange, transactionMethod, transactionNote, transactionType;
         RecyclerView recyclerView;
+        ImageView deleteTransaction;
 
-        public MyViewHolder(@NonNull View itemView) {
+        public MyViewHolder(@NonNull View itemView, TransactionClickedInterface transactionClickedInterface) {
             super(itemView);
 
             transactionDateTime = itemView.findViewById(R.id.transactionDateTime);
@@ -102,6 +108,18 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             transactionNote = itemView.findViewById(R.id.transactionNote);
             transactionNoteLayout = itemView.findViewById(R.id.transactionNoteLayout);
             recyclerView = itemView.findViewById(R.id.transactionProductsRecView);
+            transactionType = itemView.findViewById(R.id.typeOfTransaction);
+            deleteTransaction = itemView.findViewById(R.id.deleteTransaction);
+
+            deleteTransaction.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int pos = getAdapterPosition();
+                    if(pos == RecyclerView.NO_POSITION) return;
+
+                    transactionClickedInterface.transactionClicked(pos);
+                }
+            });
         }
     }
 }

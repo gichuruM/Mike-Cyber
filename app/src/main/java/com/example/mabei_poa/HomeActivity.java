@@ -37,6 +37,7 @@ import com.example.mabei_poa.databinding.ActivityHomeBinding;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -51,6 +52,8 @@ public class HomeActivity extends AppCompatActivity{
     ActivityHomeBinding binding;
     Animation rotateAnimation;
 
+    public static String SHOP_USER_UID = "zauL5ledkhPxy6NBpHmsO1upOrE2";
+    public static String userUID = "";
     private HandlerThread handlerThread = new HandlerThread("SyncHandler");
     private Handler threadHandler;
 
@@ -61,6 +64,9 @@ public class HomeActivity extends AppCompatActivity{
         setContentView(binding.getRoot());
 
         Objects.requireNonNull(getSupportActionBar()).hide();
+
+        userUID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         //Resetting the cartType to noType
         InternalDataBase.getInstance(HomeActivity.this).setCartType("noType");
 
@@ -99,7 +105,10 @@ public class HomeActivity extends AppCompatActivity{
         binding.report.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(HomeActivity.this,ReportsActivity.class));
+                if(userUID.equals(SHOP_USER_UID))
+                    Toast.makeText(HomeActivity.this, "Access denied", Toast.LENGTH_SHORT).show();
+                else
+                    startActivity(new Intent(HomeActivity.this,ReportsActivity.class));
             }
         });
 
@@ -188,6 +197,8 @@ public class HomeActivity extends AppCompatActivity{
 
         CardView purchaseFromVendor = view.findViewById(R.id.purchaseFromVendor);
         CardView moneyTracker = view.findViewById(R.id.moneyTracker);
+        CardView newTransaction = view.findViewById(R.id.newTransaction);
+        CardView stockAnalysis = view.findViewById(R.id.stockAnalysis);
 
         moneyTracker.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -209,6 +220,30 @@ public class HomeActivity extends AppCompatActivity{
                 startActivity(intent);
             }
         });
+
+        newTransaction.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomSheetDialog.cancel();
+
+                if(userUID.equals(SHOP_USER_UID))
+                    Toast.makeText(HomeActivity.this, "Access denied", Toast.LENGTH_SHORT).show();
+                else
+                    startActivity(new Intent(HomeActivity.this,NewTransaction.class));
+            }
+        });
+
+        stockAnalysis.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomSheetDialog.cancel();
+
+                if(userUID.equals(SHOP_USER_UID))
+                    Toast.makeText(HomeActivity.this, "Access denied", Toast.LENGTH_SHORT).show();
+                else
+                    startActivity(new Intent(HomeActivity.this,StockAnalysis.class));
+            }
+        });
     }
 
     @Override
@@ -216,6 +251,7 @@ public class HomeActivity extends AppCompatActivity{
         super.onResume();
         //clearing the cart if it has any items
         cartProductsList.clear();
+        InternalDataBase.getInstance(this).setNewCart(cartProductsList);
         if(InternalDataBase.getInstance(HomeActivity.this).getSyncStatus())
             binding.syncUnsavedData.setVisibility(View.VISIBLE);
         else

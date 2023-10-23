@@ -7,297 +7,317 @@
     tools:context=".AddNewProductActivity"
     android:fillViewport="true">
 
-    <ScrollView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:padding="15dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="15dp">
+            android:layout_height="wrap_content"
+            android:id="@+id/newPhotoName">
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/newPhotoName">
-
-                <ImageView
-                    android:layout_width="150dp"
-                    android:layout_height="150dp"
-                    android:src="@mipmap/ic_launcher_round"
-                    android:layout_marginTop="10dp"
-                    android:id="@+id/imgNewProduct"/>
-
-                <EditText
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Product name"
-                    android:layout_marginTop="10dp"
-                    android:layout_toEndOf="@id/imgNewProduct"
-                    android:layout_centerVertical="true"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:id="@+id/newProductName"/>
-
-            </RelativeLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"
-                android:layout_below="@+id/newPhotoName"
-                android:id="@+id/newCategory"
-                android:layout_marginTop="20dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Category"
-                    android:textSize="20sp"
-                    android:padding="3dp"/>
-
-                <Spinner
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:id="@+id/categorySpinner"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"
-                android:layout_below="@+id/newSellingPrice"
-                android:id="@+id/newProductPurchasePrice"
-                android:layout_marginTop="10dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Purchase price"
-                    android:textSize="20sp"
-                    android:padding="3dp"/>
-
-                <EditText
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:inputType="numberDecimal"
-                    android:id="@+id/purchasePrice"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"
-                android:layout_below="@+id/newCategory"
+            <ImageView
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:src="@mipmap/ic_launcher_round"
                 android:layout_marginTop="10dp"
-                android:id="@+id/newSellingPrice">
+                android:id="@+id/imgNewProduct"/>
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Selling price"
-                    android:textSize="20sp"
-                    android:padding="3dp"/>
-
-                <EditText
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:inputType="numberDecimal"
-                    android:id="@+id/sellingPrice"/>
-
-            </LinearLayout>
-
-            <LinearLayout
+            <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="3"
-                android:layout_below="@+id/newProductPurchasePrice"
+                android:hint="Product name"
                 android:layout_marginTop="10dp"
-                android:id="@+id/newQuantity">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Quantity"
-                    android:textSize="20sp"
-                    android:padding="3dp"/>
-
-                <EditText
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:inputType="numberDecimal"
-                    android:id="@+id/quantity"/>
-
-                <Spinner
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:id="@+id/unitsMeasure"
-                    android:padding="3dp"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"
-                android:layout_below="@+id/newQuantity"
-                android:layout_marginTop="10dp"
-                android:id="@+id/barcodeTitle">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Barcodes"
-                    android:textSize="20sp"
-                    android:padding="3dp"
-                    android:textStyle="bold"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="3"
-                android:layout_below="@+id/barcodeTitle"
-                android:layout_marginTop="10dp"
-                android:id="@+id/BarcodeNum">
-
-                <EditText
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:inputType="numberDecimal"
-                    android:id="@+id/barcodeNumber"/>
-
-                <ImageView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:src="@drawable/ic_baseline_qr_code_scanner_24"
-                    android:id="@+id/barcodeScanning"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"
-                android:layout_below="@+id/BarcodeNum"
-                android:layout_marginTop="10dp"
-                android:id="@+id/barcodeTitle2">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Quantity: 1/2"
-                    android:textSize="18sp"
-                    android:padding="3dp"
-                    android:textStyle="bold|italic"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="3"
-                android:layout_below="@+id/barcodeTitle2"
-                android:layout_marginTop="10dp"
-                android:id="@+id/BarcodeNum2">
-
-                <EditText
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:inputType="numberDecimal"
-                    android:id="@+id/barcodeNumber2"/>
-
-                <ImageView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:src="@drawable/ic_baseline_qr_code_scanner_24"
-                    android:id="@+id/barcodeScanning2"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"
-                android:layout_below="@+id/BarcodeNum2"
-                android:layout_marginTop="10dp"
-                android:id="@+id/barcodeTitle3">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Quantity: 1/4"
-                    android:textSize="18sp"
-                    android:padding="3dp"
-                    android:textStyle="bold|italic"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="3"
-                android:layout_below="@+id/barcodeTitle3"
-                android:layout_marginTop="10dp"
-                android:id="@+id/BarcodeNum3">
-
-                <EditText
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:inputType="numberDecimal"
-                    android:id="@+id/barcodeNumber3"/>
-
-                <ImageView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:src="@drawable/ic_baseline_qr_code_scanner_24"
-                    android:id="@+id/barcodeScanning3"/>
-
-            </LinearLayout>
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/BarcodeNum3"
-                android:layout_alignParentRight="true"
-                android:layout_marginTop="30dp"
-                android:src="@drawable/ic_outline_check_24"
-                app:maxImageSize="35dp"
-                android:id="@+id/newSave"/>
+                android:layout_toEndOf="@id/imgNewProduct"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:id="@+id/newProductName"/>
 
         </RelativeLayout>
 
-    </ScrollView>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_below="@+id/newPhotoName"
+            android:id="@+id/newCategory"
+            android:layout_marginTop="20dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Category"
+                android:textSize="20sp"
+                android:padding="3dp"/>
+
+            <Spinner
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:id="@+id/categorySpinner"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_below="@+id/newSellingPrice"
+            android:id="@+id/newProductPurchasePrice"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Purchase price"
+                android:textSize="20sp"
+                android:padding="3dp"/>
+
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="numberDecimal"
+                android:id="@+id/purchasePrice"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_below="@+id/newCategory"
+            android:layout_marginTop="10dp"
+            android:id="@+id/newSellingPrice">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Selling price"
+                android:textSize="20sp"
+                android:padding="3dp"/>
+
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="numberDecimal"
+                android:id="@+id/sellingPrice"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="3"
+            android:layout_below="@+id/newProductPurchasePrice"
+            android:layout_marginTop="10dp"
+            android:id="@+id/newQuantity">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Quantity"
+                android:textSize="20sp"
+                android:padding="3dp"/>
+
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="numberDecimal"
+                android:id="@+id/quantity"/>
+
+            <Spinner
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:id="@+id/unitsMeasure"
+                android:padding="3dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_below="@+id/newQuantity"
+            android:layout_marginTop="10dp"
+            android:id="@+id/lowestQuantity">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Low Stock Alert Qty"
+                android:textSize="20sp"
+                android:padding="3dp"/>
+
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="numberDecimal"
+                android:id="@+id/lowestStockQuantity"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_below="@+id/lowestQuantity"
+            android:layout_marginTop="10dp"
+            android:id="@+id/barcodeTitle">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Barcodes"
+                android:textSize="20sp"
+                android:padding="3dp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="3"
+            android:layout_below="@+id/barcodeTitle"
+            android:layout_marginTop="10dp"
+            android:id="@+id/BarcodeNum">
+
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:inputType="numberDecimal"
+                android:id="@+id/barcodeNumber"/>
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/ic_baseline_qr_code_scanner_24"
+                android:id="@+id/barcodeScanning"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_below="@+id/BarcodeNum"
+            android:layout_marginTop="10dp"
+            android:id="@+id/barcodeTitle2">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Quantity: 1/2"
+                android:textSize="18sp"
+                android:padding="3dp"
+                android:textStyle="bold|italic"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="3"
+            android:layout_below="@+id/barcodeTitle2"
+            android:layout_marginTop="10dp"
+            android:id="@+id/BarcodeNum2">
+
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:inputType="numberDecimal"
+                android:id="@+id/barcodeNumber2"/>
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/ic_baseline_qr_code_scanner_24"
+                android:id="@+id/barcodeScanning2"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_below="@+id/BarcodeNum2"
+            android:layout_marginTop="10dp"
+            android:id="@+id/barcodeTitle3">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Quantity: 1/4"
+                android:textSize="18sp"
+                android:padding="3dp"
+                android:textStyle="bold|italic"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="3"
+            android:layout_below="@+id/barcodeTitle3"
+            android:layout_marginTop="10dp"
+            android:id="@+id/BarcodeNum3">
+
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:inputType="numberDecimal"
+                android:id="@+id/barcodeNumber3"/>
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/ic_baseline_qr_code_scanner_24"
+                android:id="@+id/barcodeScanning3"/>
+
+        </LinearLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/BarcodeNum3"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="30dp"
+            android:src="@drawable/ic_outline_check_24"
+            app:maxImageSize="35dp"
+            android:id="@+id/newSave"/>
+
+    </RelativeLayout>
 
 </ScrollView>
