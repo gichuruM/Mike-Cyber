@@ -9,6 +9,7 @@ import android.util.Log;
 import com.example.mabei_poa.Model.CartModel;
 import com.example.mabei_poa.Model.NoteModel;
 import com.example.mabei_poa.Model.ProductModel;
+import com.example.mabei_poa.Model.TransactionModel;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
@@ -28,6 +29,7 @@ public class InternalDataBase {
     public static String MONEY_TRACKING = "MONEY_TRACKING";
     public static String CART_TYPE = "CART_TYPE";
     public static String PRODUCTS_IN_CART = "PRODUCTS_IN_CART";
+    public static String ALL_TRANSACTION = "ALL_TRANSACTIONS";
 
     private static ArrayList<NoteModel> unsavedNotes;
 
@@ -59,6 +61,10 @@ public class InternalDataBase {
             editor.putString(PRODUCTS_IN_CART,gson.toJson(new ArrayList<CartModel>()));
             editor.apply();
         }
+        if(getAllTransactions() == null){
+            editor.putString(ALL_TRANSACTION,gson.toJson(new ArrayList<TransactionModel>()));
+            editor.apply();
+        }
     }
 
     public void batchAdditionToAllProducts(ArrayList<ProductModel> manyProducts){
@@ -67,7 +73,16 @@ public class InternalDataBase {
         Log.d(TAG, "batchAdditionToAllProducts: adding many products");
         editor.remove(ALL_PRODUCTS);
         editor.putString(ALL_PRODUCTS,gson.toJson(manyProducts));
-        editor.commit();
+        editor.apply();
+    }
+
+    public void batchAdditionToAllTransactions(ArrayList<TransactionModel> manyTransactions){
+        SharedPreferences.Editor editor = sharedPref.edit();
+        Gson gson = new Gson();
+        Log.d(TAG, "batchAdditionToAllTransactions: adding many transactions");
+        editor.remove(ALL_TRANSACTION);
+        editor.putString(ALL_TRANSACTION,gson.toJson(manyTransactions));
+        editor.apply();
     }
 
     public boolean addToAllProducts(ProductModel productModel){
@@ -243,6 +258,14 @@ public class InternalDataBase {
         String json = sharedPref.getString(PRODUCTS_IN_CART,"null");
         Gson gson = new Gson();
 
+        return gson.fromJson(json,type);
+    }
+    
+    public ArrayList<TransactionModel> getAllTransactions(){
+        Type type = new TypeToken<ArrayList<TransactionModel>>(){}.getType();
+        String json = sharedPref.getString(ALL_TRANSACTION,"null");
+        Gson gson = new Gson();
+        
         return gson.fromJson(json,type);
     }
 

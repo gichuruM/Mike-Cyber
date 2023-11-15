@@ -26,8 +26,13 @@ import com.bumptech.glide.Glide;
 import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.databinding.ActivityAddNewProductBinding;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -35,6 +40,8 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
+
+import org.w3c.dom.Document;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -181,7 +188,8 @@ public class AddNewProductActivity extends AppCompatActivity {
                                 Double.parseDouble(sellingPrice),Double.parseDouble(quantity),Double.parseDouble(lowAlert),unitsPicked,barcodes);
                         saveProductToServer(product);
                     } else {
-                        DocumentReference documentReference = FirebaseFirestore.getInstance().collection("products").document(existingProduct.getId());
+//                        DocumentReference documentReference = FirebaseFirestore.getInstance().collection("products").document(existingProduct.getId());
+                        DatabaseReference docRef = FirebaseDatabase.getInstance().getReference("products").child(existingProduct.getId());
                         //checking if any of the barcodes have been edited
                         boolean barcodeChanged = false;
                         Map<String, Double> existingBarcodes = existingProduct.getBarcodes();
@@ -202,35 +210,43 @@ public class AddNewProductActivity extends AppCompatActivity {
 
                         if(barcodeChanged){
                             Toast.makeText(AddNewProductActivity.this, "Barcode has changed", Toast.LENGTH_SHORT).show();
-                            documentReference.update("barcodes",barcodes);
+                            docRef.child("barcodes").setValue(barcodes);
+//                            documentReference.update("barcodes",barcodes);
                         }
                         if(existingProduct.getLowStockAlert() != Double.parseDouble(lowAlert)){
                             Toast.makeText(AddNewProductActivity.this, "Low Alert Qty has changed", Toast.LENGTH_SHORT).show();
-                            documentReference.update("lowStockAlert",Double.parseDouble(lowAlert));
+                            docRef.child("lowStockAlert").setValue(Double.parseDouble(lowAlert));
+//                            documentReference.update("lowStockAlert",Double.parseDouble(lowAlert));
                         }
                         if(!existingProduct.getName().equals(name)){
                             Toast.makeText(AddNewProductActivity.this, "Name has changed", Toast.LENGTH_SHORT).show();
-                            documentReference.update("name",name);
+                            docRef.child("name").setValue(name);
+//                            documentReference.update("name",name);
                         }
                         if(existingProduct.getPurchasePrice() != Double.parseDouble(purchasePrice)){
                             Toast.makeText(AddNewProductActivity.this, "Purchase price has changed", Toast.LENGTH_SHORT).show();
-                            documentReference.update("purchasePrice",Double.valueOf(purchasePrice));
+                            docRef.child("purchasePrice").setValue(Double.valueOf(purchasePrice));
+//                            documentReference.update("purchasePrice",Double.valueOf(purchasePrice));
                         }
                         if(existingProduct.getSellingPrice() != Double.parseDouble(sellingPrice)){
                             Toast.makeText(AddNewProductActivity.this, "Selling price has changed", Toast.LENGTH_SHORT).show();
-                            documentReference.update("sellingPrice",Double.valueOf(sellingPrice));
+                            docRef.child("sellingPrice").setValue(Double.valueOf(sellingPrice));
+//                            documentReference.update("sellingPrice",Double.valueOf(sellingPrice));
                         }
                         if(existingProduct.getQuantity() != Double.parseDouble(quantity)){
                             Toast.makeText(AddNewProductActivity.this, "Quantity has changed", Toast.LENGTH_SHORT).show();
-                            documentReference.update("quantity",Double.valueOf(quantity));
+                            docRef.child("quantity").setValue(Double.valueOf(quantity));
+//                            documentReference.update("quantity",Double.valueOf(quantity));
                         }
                         if(!existingProduct.getCategory().equals(categoryPicked)){
                             Toast.makeText(AddNewProductActivity.this, "Category picked has changed", Toast.LENGTH_SHORT).show();
-                            documentReference.update("category",categoryPicked);
+                            docRef.child("category").setValue(categoryPicked);
+//                            documentReference.update("category",categoryPicked);
                         }
                         if(!existingProduct.getUnits().equals(unitsPicked)){
                             Toast.makeText(AddNewProductActivity.this, "Units has changed", Toast.LENGTH_SHORT).show();
-                            documentReference.update("units",unitsPicked);
+                            docRef.child("units").setValue(unitsPicked);
+//                            documentReference.update("units",unitsPicked);
                         }
                         if(imageUri != null){
                             Toast.makeText(AddNewProductActivity.this, "Pic has changed", Toast.LENGTH_SHORT).show();
@@ -243,7 +259,8 @@ public class AddNewProductActivity extends AppCompatActivity {
                                                 @Override
                                                 public void onSuccess(Uri uri) {
                                                     String newUri = uri.toString();
-                                                    documentReference.update("image",newUri);
+                                                    docRef.child("image").setValue(newUri);
+//                                                    documentReference.update("image",newUri);
                                                 }
                                             });
                                         }
@@ -256,11 +273,14 @@ public class AddNewProductActivity extends AppCompatActivity {
                                     });
                         }
 
-                        startActivity(new Intent(AddNewProductActivity.this,ProductsActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                        startActivity(new Intent(AddNewProductActivity.this,ProductsActivity.class)
+                                .putExtra("type","Default")
+                                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                     }
                 }
             }
         });
+
     }
 
     @Override
@@ -285,23 +305,26 @@ public class AddNewProductActivity extends AppCompatActivity {
                 builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        FirebaseFirestore.getInstance()
-                                .collection("products")
-                                .document(existingProduct.getId())
+
+                        DatabaseReference databaseRef = FirebaseDatabase.getInstance()
+                                .getReference("products").child(existingProduct.getId());
+
+                        FirebaseStorage.getInstance()
+                                .getReference("products/"+existingProduct.getId()+".png")
                                 .delete()
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void unused) {
 
-                                        FirebaseStorage.getInstance()
-                                                .getReference("products/"+existingProduct.getId()+".png")
-                                                .delete()
+                                        databaseRef
+                                                .removeValue()
                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
                                                     public void onSuccess(Void unused) {
-                                                        Toast.makeText(AddNewProductActivity.this, "Deleted Successfully", Toast.LENGTH_SHORT).show();
-                                                        startActivity(new Intent(AddNewProductActivity.this,ProductsActivity.class));
-                                                        finish();
+                                                        Toast.makeText(AddNewProductActivity.this, "Product deleted successfully", Toast.LENGTH_SHORT).show();
+                                                        startActivity(new Intent(AddNewProductActivity.this,ProductsActivity.class)
+                                                                .putExtra("type","Default")
+                                                                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                                                     }
                                                 })
                                                 .addOnFailureListener(new OnFailureListener() {
@@ -311,9 +334,9 @@ public class AddNewProductActivity extends AppCompatActivity {
                                                     }
                                                 });
 
+
                                     }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
+                                }).addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
                                         Toast.makeText(AddNewProductActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -393,19 +416,47 @@ public class AddNewProductActivity extends AppCompatActivity {
                                     public void onSuccess(Uri uri) {
                                         product.setImage(uri.toString());
 
-                                        FirebaseFirestore.getInstance()
-                                                .collection("products")
-                                                .document(product.getId())
-                                                .set(product)
+//                                        FirebaseFirestore.getInstance()
+//                                                .collection("products")
+//                                                .document(product.getId())
+//                                                .set(product)
+//                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+//                                                    @Override
+//                                                    public void onSuccess(Void unused) {
+//                                                        if(progressDialog.isShowing())
+//                                                            progressDialog.dismiss();
+//
+//                                                        Toast.makeText(AddNewProductActivity.this, "Product saved successfully", Toast.LENGTH_SHORT).show();
+//                                                        startActivity(new Intent(AddNewProductActivity.this,ProductsActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+//                                                        InternalDataBase.getInstance(AddNewProductActivity.this).addToAllProducts(product);
+//                                                    }
+//                                                })
+//                                                .addOnFailureListener(new OnFailureListener() {
+//                                                    @Override
+//                                                    public void onFailure(@NonNull Exception e) {
+//                                                        if(progressDialog.isShowing())
+//                                                            progressDialog.dismiss();
+//
+//                                                        Toast.makeText(AddNewProductActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+//                                                    }
+//                                                });
+
+                                        FirebaseDatabase.getInstance()
+                                                .getReference("products")
+                                                .child(product.getId())
+                                                .setValue(product)
                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
                                                     public void onSuccess(Void unused) {
                                                         if(progressDialog.isShowing())
                                                             progressDialog.dismiss();
 
+                                                        startActivity(new Intent(AddNewProductActivity.this,ProductsActivity.class)
+                                                                .putExtra("type","Default")
+                                                                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+//                                                        InternalDataBase.getInstance(AddNewProductActivity.this).addToAllProducts(product);
                                                         Toast.makeText(AddNewProductActivity.this, "Product saved successfully", Toast.LENGTH_SHORT).show();
-                                                        startActivity(new Intent(AddNewProductActivity.this,ProductsActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                                                        InternalDataBase.getInstance(AddNewProductActivity.this).addToAllProducts(product);
+                                                        Log.d(TAG, "onSuccess: saved product id "+product.getId());
                                                     }
                                                 })
                                                 .addOnFailureListener(new OnFailureListener() {
@@ -417,7 +468,6 @@ public class AddNewProductActivity extends AppCompatActivity {
                                                         Toast.makeText(AddNewProductActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                                                     }
                                                 });
-
                                     }
                                 })
                                 .addOnFailureListener(new OnFailureListener() {

@@ -231,39 +231,62 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
         //To take care of situations where the barcode starts with 0
         long barcode = Long.parseLong(scannedBarcode);
 
+        boolean restricted = false;
+        //Allowed Products: Brown bread BB, Bread BB, Bread half BB, Bread Tpremium, Bread Tosha, stars
+        String[] allowedProducts = {
+                "bd29755d-b6bc-4b9f-9e62-7dabeaff086b", "bfbcb65e-0245-4705-8598-dca56550aa99",
+                "1dadc5ab-27df-4d33-b949-8488d4651611", "010c8495-2737-4467-9d1b-e9c17df48266",
+                "211d4583-5286-49be-a39e-2d990f9128c6", "01d8c835-3e9a-4ea8-ad45-2eb50bb2331c"};
+
         if(cartProductsList.size() > 0){
             for(ProductModel p: scanningArray){
                 Map<String, Double> productBarcodes = p.getBarcodes();
 
                 for(String key: productBarcodes.keySet()){
                     if(scannedBarcode.equals(key) || barcode == Long.parseLong(key)){
-                        boolean inCart = false;
 
-                        int pos = -1;
-                        for(CartModel c: cartProductsList){
-                            pos++;
-                            if(c.getProductId().equals(p.getId())){
-                                double quantity = c.getQuantity() + productBarcodes.get(key);
-                                Toast.makeText(this, "Product already in cart quantity "+quantity, Toast.LENGTH_SHORT).show();
-                                cartProductsList.remove(cartProductsList.get(pos));
-                                cartAdapter.notifyItemRemoved(pos);
-
-                                CartModel cartModel = new CartModel(p.getId(),quantity,p.getSellingPrice()*quantity);
-                                cartProductsList.add(pos, cartModel);
-                                cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
-                                binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
-                                inCart = true;
-                                break;
+                        //checking if it's a vendor purchase and if the product is restricted
+                        if(InternalDataBase.getInstance(SaleToCustomerActivity.this).getCartType().equals("Purchase")){
+                            restricted = true;
+                            for(int i = 0; i < allowedProducts.length; i++){
+                                if(p.getId().equals(allowedProducts[i])){
+                                    restricted = false;
+                                    break;
+                                }
                             }
                         }
 
-                        if(!inCart){
-                            CartModel cartModel = new CartModel(p.getId(),productBarcodes.get(key),p.getSellingPrice());
-                            cartProductsList.add(cartModel);
-                            cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
-                            binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
+                        if(!restricted){
+                            boolean inCart = false;
+
+                            int pos = -1;
+                            for(CartModel c: cartProductsList){
+                                pos++;
+                                if(c.getProductId().equals(p.getId())){
+                                    double quantity = c.getQuantity() + productBarcodes.get(key);
+                                    Toast.makeText(this, "Product already in cart quantity "+quantity, Toast.LENGTH_SHORT).show();
+                                    cartProductsList.remove(cartProductsList.get(pos));
+                                    cartAdapter.notifyItemRemoved(pos);
+
+                                    CartModel cartModel = new CartModel(p.getId(),quantity,p.getSellingPrice()*quantity);
+                                    cartProductsList.add(pos, cartModel);
+                                    cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
+                                    binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
+                                    inCart = true;
+                                    break;
+                                }
+                            }
+
+                            if(!inCart){
+                                CartModel cartModel = new CartModel(p.getId(),productBarcodes.get(key),p.getSellingPrice());
+                                cartProductsList.add(cartModel);
+                                cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
+                                binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
+                            }
+                            InternalDataBase.getInstance(this).setNewCart(cartProductsList);
+                        } else {
+                            Toast.makeText(SaleToCustomerActivity.this, "Access denied", Toast.LENGTH_SHORT).show();
                         }
-                        InternalDataBase.getInstance(this).setNewCart(cartProductsList);
                     }
                 }
             }
@@ -273,10 +296,26 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
 
                 for(String key: productBarcodes.keySet()){
                     if(scannedBarcode.equals(key) || barcode == Long.parseLong(key)){
-                        CartModel cartModel = new CartModel(p.getId(),productBarcodes.get(key),p.getSellingPrice());
-                        cartProductsList.add(cartModel);
-                        InternalDataBase.getInstance(this).setNewCart(cartProductsList);
-                        cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
+
+                        //checking if it's a vendor purchase and if the product is restricted
+                        if(InternalDataBase.getInstance(SaleToCustomerActivity.this).getCartType().equals("Purchase")){
+                            restricted = true;
+                            for(int i = 0; i < allowedProducts.length; i++){
+                                if(p.getId().equals(allowedProducts[i])){
+                                    restricted = false;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(!restricted){
+                            CartModel cartModel = new CartModel(p.getId(),productBarcodes.get(key),p.getSellingPrice());
+                            cartProductsList.add(cartModel);
+                            InternalDataBase.getInstance(this).setNewCart(cartProductsList);
+                            cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
+                        } else {
+                            Toast.makeText(SaleToCustomerActivity.this, "Access denied", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
             }

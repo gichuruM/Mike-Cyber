@@ -31,21 +31,29 @@ import com.example.mabei_poa.Adapter.AllProductsAdapter;
 import com.example.mabei_poa.ExtraClasses.ConnectivityReceiver;
 import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.ExtraClasses.SyncNotesRunnable;
+import com.example.mabei_poa.Fragment.AllProductsFragment;
 import com.example.mabei_poa.Model.NoteModel;
 import com.example.mabei_poa.Model.ProductModel;
+import com.example.mabei_poa.Model.TransactionModel;
 import com.example.mabei_poa.databinding.ActivityHomeBinding;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+
+import io.grpc.Internal;
 
 public class HomeActivity extends AppCompatActivity{
 
@@ -128,43 +136,77 @@ public class HomeActivity extends AppCompatActivity{
 
         InternalDataBase.getInstance(this);
 
-        ArrayList<ProductModel> productsList = InternalDataBase.getInstance(this).getAllProducts();
-        //Initializing internal data base product list if it's empty
-        if(productsList == null){
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    fullProductModelArrayList.clear();
+        ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(this).getAllProducts();
+        ArrayList<TransactionModel> allTransactions = InternalDataBase.getInstance(this).getAllTransactions();
 
-                    FirebaseFirestore.getInstance().collection("products")
-                            .orderBy("name", Query.Direction.ASCENDING)
-                            .get()
-                            .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                @Override
-                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                    List<DocumentSnapshot> dsList = queryDocumentSnapshots.getDocuments();
-
-                                    for(DocumentSnapshot ds: dsList){
-                                        ProductModel product = ds.toObject(ProductModel.class);
-                                        fullProductModelArrayList.add(product);
-                                    }
-
-                                    InternalDataBase.getInstance(HomeActivity.this).batchAdditionToAllProducts(fullProductModelArrayList);
-                                }
-                            })
-                            .addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(HomeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-                                }
-                            });
+//        Initializing product event listener if it isn't initialized yet
+        if(allProducts.isEmpty() || AllProductsFragment.productEventListener == null){
+            new Thread(() -> {
+                //Ensuring there isn't more than one eventListener on the dataRef
+                if(AllProductsFragment.productEventListener != null){
+                    AllProductsFragment.productDBRef.removeEventListener(AllProductsFragment.productEventListener);
+                    AllProductsFragment.productEventListener = null;
                 }
-            });
+
+                AllProductsFragment.productEventListener = new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        ArrayList<ProductModel> finalAllProductsList = new ArrayList<>();
+//                          Log.d(TAG, "onDataChange: valueEventListener triggered");
+                        for(DataSnapshot snap: snapshot.getChildren()){
+                            ProductModel product = snap.getValue(ProductModel.class);
+
+                            if(product != null)
+                                finalAllProductsList.add(product);
+                        }
+                        Log.d(TAG, "onDataChange: products initialized for the 1st time, products updated");
+                        InternalDataBase.getInstance(HomeActivity.this).batchAdditionToAllProducts(finalAllProductsList);
+                        Toast.makeText(HomeActivity.this, "Products updated!", Toast.LENGTH_SHORT).show();
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(HomeActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                };
+
+                AllProductsFragment.productDBRef.addValueEventListener(AllProductsFragment.productEventListener);
+            }).start();
+        }
+
+        //Initializing transaction event listener if it isn't initialized yet
+        if(allTransactions.isEmpty() || TransactionActivity.transactionEventListener == null) {
+            new Thread(() -> {
+                //Ensuring theres just one event listener in the database
+                if(TransactionActivity.transactionEventListener != null){
+                    TransactionActivity.transactionDBRef.removeEventListener(TransactionActivity.transactionEventListener);
+                    TransactionActivity.transactionEventListener = null;
+                }
+
+                TransactionActivity.transactionEventListener = new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        ArrayList<TransactionModel> allTransactions = new ArrayList<>();
+
+                        for(DataSnapshot snap: snapshot.getChildren()){
+                            TransactionModel transaction = snap.getValue(TransactionModel.class);
+
+                            if(transaction != null)
+                                allTransactions.add(transaction);
+                        }
+                        Collections.reverse(allTransactions);
+                        Log.d(TAG, "onDataChange: Transactions product size "+allTransactions.size()+" transaction updated");
+                        InternalDataBase.getInstance(HomeActivity.this).batchAdditionToAllTransactions(allTransactions);
+                        Toast.makeText(HomeActivity.this, "Transactions updated!", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.d(TAG, "onCancelled: Error while retrieving transactions "+error.getMessage());
+                    }
+                };
+
+                TransactionActivity.transactionDBRef.orderByChild("timeInMillis").addValueEventListener(TransactionActivity.transactionEventListener);
+            }).start();
         }
     }
 

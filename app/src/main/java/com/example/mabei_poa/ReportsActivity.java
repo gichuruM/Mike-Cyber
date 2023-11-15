@@ -17,6 +17,7 @@ import android.widget.DatePicker;
 import android.widget.Toast;
 
 import com.example.mabei_poa.Adapter.ReportDataAdapter;
+import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.Model.TransactionModel;
 import com.example.mabei_poa.databinding.ActivityReportsBinding;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -28,6 +29,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -123,74 +125,61 @@ public class ReportsActivity extends AppCompatActivity {
         SimpleDateFormat dateFormat = new SimpleDateFormat("d/M/yyyy");
 
         transactionReportList.clear();
-        FirebaseFirestore.getInstance().collection("Transactions")
-                .orderBy("time", Query.Direction.ASCENDING)
-                .get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        List<DocumentSnapshot> documentSnapshots = queryDocumentSnapshots.getDocuments();
-                        double revenue = 0, profit = 0, purchases = 0, cashFlow = 0, waterLessProfit = 0;
+        ArrayList<TransactionModel> allTransactions = InternalDataBase.getInstance(this).getAllTransactions();
+        Collections.reverse(allTransactions);
 
-                        for(DocumentSnapshot ds: documentSnapshots){
-                            TransactionModel transaction = ds.toObject(TransactionModel.class);
-                            if(dateFormat.format(transaction.getTime()).equals(datePicked)){
-                                if(Objects.equals(reportSettingType, getString(R.string.report1)) &&
-                                    transaction.getTransactionType().equals("Sale")){
-                                    transactionReportList.add(transaction);
-                                    revenue += transaction.getTotalAmount();
-                                }
-                                else if(Objects.equals(reportSettingType, getString(R.string.report3)) &&
-                                        transaction.getTransactionType().equals("Sale")) {
-                                    transactionReportList.add(transaction);
-                                    profit += transaction.getProfit();
-                                }
-                                else if(Objects.equals(reportSettingType, getString(R.string.report2)) &&
-                                        transaction.getTransactionType().equals("Purchase")){
-                                    transactionReportList.add(transaction);
-                                    purchases += transaction.getTotalAmount();
-                                }
-                                else if(Objects.equals(reportSettingType, getString(R.string.report4))){
-                                    transactionReportList.add(transaction);
-                                    cashFlow += transaction.getTotalAmount();
-                                }
-                                else if(Objects.equals(reportSettingType, getString(R.string.report5)) &&
-                                        transaction.getTransactionType().equals("Sale")){
-                                    transactionReportList.add(transaction);
-                                    waterLessProfit += transaction.getWaterlessProfit();
-                                }
-                            }
-                        }
-                        Log.d(TAG, "onSuccess: size "+transactionReportList.size());
-                        ReportDataAdapter adapter = new ReportDataAdapter(transactionReportList);
+        double revenue = 0, profit = 0, purchases = 0, cashFlow = 0, waterLessProfit = 0;
 
-                        binding.reportRecView.setLayoutManager(new LinearLayoutManager(ReportsActivity.this));
-                        binding.reportRecView.setHasFixedSize(true);
-                        binding.reportRecView.setAdapter(adapter);
-                        adapter.notifyDataSetChanged();
+        for(TransactionModel transaction: allTransactions){
+            Date date = new Date(transaction.getTimeInMillis());
 
-                        if(Objects.equals(reportSettingType, getString(R.string.report1)))
-                            binding.reportRevenue.setText(String.valueOf(revenue));
-                        else if(Objects.equals(reportSettingType, getString(R.string.report3)))
-                            binding.reportRevenue.setText(String.format("%.1f",profit));
-                        else if(Objects.equals(reportSettingType, getString(R.string.report2)))
-                            binding.reportRevenue.setText(String.valueOf(-purchases));
-                        else if(Objects.equals(reportSettingType, getString(R.string.report4)))
-                            binding.reportRevenue.setText(String.valueOf(cashFlow));
-                        else if(Objects.equals(reportSettingType, getString(R.string.report5)))
-                            binding.reportRevenue.setText(String.format("%.1f",waterLessProfit));
+            if(dateFormat.format(date).equals(datePicked)){
+                if(Objects.equals(reportSettingType, getString(R.string.report1)) &&
+                    transaction.getTransactionType().equals("Sale")){
+                    transactionReportList.add(transaction);
+                    revenue += transaction.getTotalAmount();
+                }
+                else if(Objects.equals(reportSettingType, getString(R.string.report3)) &&
+                        transaction.getTransactionType().equals("Sale")) {
+                    transactionReportList.add(transaction);
+                    profit += transaction.getProfit();
+                }
+                else if(Objects.equals(reportSettingType, getString(R.string.report2)) &&
+                        transaction.getTransactionType().equals("Purchase")){
+                    transactionReportList.add(transaction);
+                    purchases += transaction.getTotalAmount();
+                }
+                else if(Objects.equals(reportSettingType, getString(R.string.report4))){
+                    transactionReportList.add(transaction);
+                    cashFlow += transaction.getTotalAmount();
+                }
+                else if(Objects.equals(reportSettingType, getString(R.string.report5)) &&
+                        transaction.getTransactionType().equals("Sale")){
+                    transactionReportList.add(transaction);
+                    waterLessProfit += transaction.getWaterlessProfit();
+                }
+            }
+        }
+        Log.d(TAG, "onSuccess: size "+transactionReportList.size());
+        ReportDataAdapter adapter = new ReportDataAdapter(transactionReportList);
 
-                        progressDialog.dismiss();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(ReportsActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "onFailure: Report transactions not found");
-                        progressDialog.dismiss();
-                    }
-                });
+        binding.reportRecView.setLayoutManager(new LinearLayoutManager(ReportsActivity.this));
+        binding.reportRecView.setHasFixedSize(true);
+        binding.reportRecView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+
+        if(Objects.equals(reportSettingType, getString(R.string.report1)))
+            binding.reportRevenue.setText(String.valueOf(revenue));
+        else if(Objects.equals(reportSettingType, getString(R.string.report3)))
+            binding.reportRevenue.setText(String.format("%.1f",profit));
+        else if(Objects.equals(reportSettingType, getString(R.string.report2)))
+            binding.reportRevenue.setText(String.valueOf(-purchases));
+        else if(Objects.equals(reportSettingType, getString(R.string.report4)))
+            binding.reportRevenue.setText(String.valueOf(cashFlow));
+        else if(Objects.equals(reportSettingType, getString(R.string.report5)))
+            binding.reportRevenue.setText(String.format("%.1f",waterLessProfit));
+
+        progressDialog.dismiss();
     }
 
     private void DatePicker() {
