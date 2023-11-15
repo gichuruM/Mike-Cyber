@@ -87,9 +87,7 @@ public class AllProductsAdapter extends RecyclerView.Adapter<AllProductsAdapter.
             }
         }
 
-        for(ProductModel p: productModelArrayList){
-            finalProductArrayList.add(p);
-        }
+        finalProductArrayList.addAll(productModelArrayList);
         notifyDataSetChanged();
     }
 
@@ -137,14 +135,15 @@ public class AllProductsAdapter extends RecyclerView.Adapter<AllProductsAdapter.
 
                     boolean restricted = false;
 
+                    //Allowed Products: Brown bread BB, Bread BB, Bread half BB, Bread Tpremium, Bread Tosha, stars
                     String[] allowedProducts = {
-                            "bfbcb65e-0245-4705-8598-dca56550aa99", "a4c56a3e-a2cf-4a67-99f1-72e623ddb3b9",
-                            "010c8495-2737-4467-9d1b-e9c17df48266", "1dadc5ab-27df-4d33-b949-8488d4651611",
-                            "01d8c835-3e9a-4ea8-ad45-2eb50bb2331c"};
+                            "bd29755d-b6bc-4b9f-9e62-7dabeaff086b", "bfbcb65e-0245-4705-8598-dca56550aa99",
+                            "1dadc5ab-27df-4d33-b949-8488d4651611", "010c8495-2737-4467-9d1b-e9c17df48266",
+                            "211d4583-5286-49be-a39e-2d990f9128c6", "01d8c835-3e9a-4ea8-ad45-2eb50bb2331c"};
+//                    Log.d(TAG, "onClick: "+productModel.getName()+" id: "+productModel.getId());
 
-                    //Restricting shop account from handling purchases of various products
-                    if(InternalDataBase.getInstance(context).getCartType().equals("Purchase") &&
-                            userUID.equals(SHOP_USER_UID)){
+                    //Restricting handling purchases of various products
+                    if(InternalDataBase.getInstance(context).getCartType().equals("Purchase")){
                         restricted = true;
                         for(int i = 0; i < allowedProducts.length; i++){
                             if(productModel.getId().equals(allowedProducts[i])){
@@ -153,10 +152,10 @@ public class AllProductsAdapter extends RecyclerView.Adapter<AllProductsAdapter.
                             }
                         }
                     }
-//                    Log.d(TAG, "onClick: "+"Name "+ productModel.getName()+" id "+productModel.getId());
+
                     if(!restricted){
                         boolean inCart = false;
-
+                        //checking if the product is in the cart, and if it is, remove it
                         for(CartModel p: cartProductsList){
                             if(p.getProductId().equals(productModel.getId())){
                                 inCart = true;

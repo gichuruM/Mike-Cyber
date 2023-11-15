@@ -17,6 +17,7 @@ import com.example.mabei_poa.R;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 
 public class ReportDataAdapter extends RecyclerView.Adapter<ReportDataAdapter.MyViewHolder>{
@@ -39,8 +40,9 @@ public class ReportDataAdapter extends RecyclerView.Adapter<ReportDataAdapter.My
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         TransactionModel transactionModel = transactionModels.get(position);
+        Date date = new Date(transactionModel.getTimeInMillis());
 
-        holder.reportDate.setText(simpleDateFormat.format(transactionModel.getTime()));
+        holder.reportDate.setText(simpleDateFormat.format(date));
         holder.reportPayment.setText(transactionModel.getPaymentMethod());
         Map<String, Double> cartDetails = transactionModel.getCartDetails();
 

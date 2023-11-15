@@ -79,6 +79,7 @@ public class ProductsActivity extends AppCompatActivity {
                     }
                 }
                 temporaryCartList.clear();
+                SaleToCustomerActivity.totalCartAmount();
             }
         }
     }

@@ -24,6 +24,7 @@ import com.example.mabei_poa.R;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,8 +51,9 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         TransactionModel transaction = transactionModels.get(position);
+        Date date = new Date(transaction.getTimeInMillis());
 
-        String time = new SimpleDateFormat("h:mm a  d/M/yyyy").format(transaction.getTime());
+        String time = new SimpleDateFormat("h:mm a  d/M/yyyy").format(date);
 
         holder.transactionDateTime.setText(time);
         holder.transactionReceivedAmount.setText(String.valueOf(transaction.getReceivedAmount()));
@@ -69,20 +71,22 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         productsList.clear();
         Map<String, Double> cartDetails = transaction.getCartDetails();
 
-        for(String ids : cartDetails.keySet()){
-            ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(context).getAllProducts();
-            for(ProductModel p: allProducts){
-                if(ids.equals(p.getId())){
-                    productsList.add(p);
+        if(cartDetails != null){
+            for(String ids : cartDetails.keySet()){
+                ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(context).getAllProducts();
+                for(ProductModel p: allProducts){
+                    if(ids.equals(p.getId())){
+                        productsList.add(p);
+                    }
                 }
             }
+
+            TransactionCartProductAdapter adapter = new TransactionCartProductAdapter(context,productsList,cartDetails,transaction.getTransactionType());
+
+            holder.recyclerView.setAdapter(adapter);
+            holder.recyclerView.setLayoutManager(new LinearLayoutManager(context));
+            holder.recyclerView.setHasFixedSize(true);
         }
-
-        TransactionCartProductAdapter adapter = new TransactionCartProductAdapter(context,productsList,cartDetails,transaction.getTransactionType());
-
-        holder.recyclerView.setAdapter(adapter);
-        holder.recyclerView.setLayoutManager(new LinearLayoutManager(context));
-        holder.recyclerView.setHasFixedSize(true);
     }
 
     @Override

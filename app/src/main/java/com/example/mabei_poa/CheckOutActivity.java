@@ -26,6 +26,8 @@ import com.example.mabei_poa.Model.TransactionModel;
 import com.example.mabei_poa.databinding.ActivityCheckOutBinding;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -118,7 +120,7 @@ public class CheckOutActivity extends AppCompatActivity {
                 else if(cartProductsList.size() <= 0)
                     Toast.makeText(CheckOutActivity.this, "There are 0 products in the cart", Toast.LENGTH_SHORT).show();
                 else {  //saving the transaction
-                    Date transactionTime = new Date();
+                    Long timeInMillis = new Date().getTime();
                     double receivedAmount = Double.parseDouble(binding.receivedAmount.getText().toString());
                     double total = totalAmount;
                     double totalProfit = 0, nonWaterProfit = 0;
@@ -158,7 +160,7 @@ public class CheckOutActivity extends AppCompatActivity {
                                     //Adjusting quantity after transaction
                                     double adjustedQty = Math.round((p.getQuantity() - c.getQuantity()) * 100);
                                     adjustedQty = adjustedQty/100;
-                                    Log.d(TAG, "onClick: adjusted qty "+adjustedQty);
+                                    Log.d(TAG, "onClick: adjusted qty "+adjustedQty+" old qty "+p.getQuantity());
                                     ChangingQuantityRunnable editQuantity = new ChangingQuantityRunnable(CheckOutActivity.this,p.getId(),adjustedQty);
                                     handler.post(editQuantity);
 
@@ -189,7 +191,7 @@ public class CheckOutActivity extends AppCompatActivity {
                     for(CartModel c: cartProductsList)
                         cartDetails.put(c.getProductId(),c.getQuantity());
 
-                    TransactionModel transaction = new TransactionModel(randomId,transactionTime,
+                    TransactionModel transaction = new TransactionModel(randomId,timeInMillis,
                             cartDetails,total,receivedAmount,changeAmount,payment,note,totalProfit,
                             InternalDataBase.getInstance(CheckOutActivity.this).getCartType(),nonWaterProfit);
 
@@ -227,30 +229,24 @@ public class CheckOutActivity extends AppCompatActivity {
                         }
 
                         private void saveTransaction(String randomId, TransactionModel transaction){
-//                            Log.d(TAG, "saveTransaction run: Transaction "+ transaction.getCartModelArrayList().size());
-                            DocumentReference docRef = FirebaseFirestore.getInstance().collection("Transactions").document(randomId);
+                            Log.d(TAG, "saveTransaction run: Transaction ");
 
-                            docRef.set(transaction)
+                            DatabaseReference transactionRef = FirebaseDatabase.getInstance().getReference("transactions");
+
+                            transactionRef.child(transaction.getTransactionId())
+                                    .setValue(transaction)
                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
                                         public void onSuccess(Void unused) {
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    Toast.makeText(CheckOutActivity.this, "Transaction saved successfully", Toast.LENGTH_SHORT).show();
-                                                }
-                                            });
+                                            Log.d(TAG, "onSuccess: Transaction saved successfully");
+                                            Toast.makeText(CheckOutActivity.this, "Transaction saved", Toast.LENGTH_SHORT).show();
                                         }
                                     })
                                     .addOnFailureListener(new OnFailureListener() {
                                         @Override
                                         public void onFailure(@NonNull Exception e) {
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    Toast.makeText(CheckOutActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                                                }
-                                            });
+                                            Log.d(TAG, "onFailure: Error saving transaction "+e.getMessage());
+                                            Toast.makeText(CheckOutActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                                         }
                                     });
                         }

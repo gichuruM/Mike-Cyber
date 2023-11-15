@@ -15,6 +15,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.example.mabei_poa.Adapter.StockAnalysisAdapter;
+import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.databinding.ActivityStockAnalysisBinding;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -72,50 +73,28 @@ public class StockAnalysis extends AppCompatActivity {
 
     private void getProductData() {
 
-        ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle("Loading...");
-        progressDialog.setMessage("data");
-        progressDialog.show();
-
         productModels.clear();
-        FirebaseFirestore.getInstance()
-                .collection("products")
-                .orderBy("name", Query.Direction.ASCENDING)
-                .get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        List<DocumentSnapshot> dsList = queryDocumentSnapshots.getDocuments();
-                        double finalResult = 0;
 
-                        for(DocumentSnapshot ds: dsList){
-                            ProductModel product = ds.toObject(ProductModel.class);
-                            //Removing water from stock counting
-                            if(!(product.getId().equals("61cfbdc7-63fa-4012-9f1f-220f2e0d0863") ||
-                                product.getId().equals("53fbab78-2f31-40c9-b4bb-690096416bc7"))){
-                                productModels.add(product);
-                                if(stockType.equals(getString(R.string.costOfBuying)))
-                                    finalResult += (product.getPurchasePrice()*product.getQuantity());
-                                else
-                                    finalResult += (product.getSellingPrice()*product.getQuantity());
-                            }
-                        }
+        ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(this).getAllProducts();
+        double finalResult = 0;
 
-                        StockAnalysisAdapter stockAdapter = new StockAnalysisAdapter(StockAnalysis.this, productModels);
-                        binding.stockAnalysisRecView.setAdapter(stockAdapter);
-                        String result = String.format("%.1f",finalResult);
-                        binding.stockResultSum.setText(result);
-                        stockAdapter.notifyDataSetChanged();
+        for(ProductModel ds: allProducts){
+            //Removing water from stock counting
+            if(!(ds.getId().equals("61cfbdc7-63fa-4012-9f1f-220f2e0d0863") ||
+                    ds.getId().equals("53fbab78-2f31-40c9-b4bb-690096416bc7"))){
+                productModels.add(ds);
+                if(stockType.equals(getString(R.string.costOfBuying)))
+                    finalResult += (ds.getPurchasePrice()*ds.getQuantity());
+                else
+                    finalResult += (ds.getSellingPrice()*ds.getQuantity());
+            }
+        }
 
-                        progressDialog.dismiss();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d(TAG, "onFailure: "+e.getMessage());
-                        progressDialog.dismiss();
-                    }
-                });
+        StockAnalysisAdapter stockAdapter = new StockAnalysisAdapter(StockAnalysis.this, productModels);
+        binding.stockAnalysisRecView.setAdapter(stockAdapter);
+        String result = String.format("%.1f",finalResult);
+        binding.stockResultSum.setText(result);
+        stockAdapter.notifyDataSetChanged();
+
     }
 }

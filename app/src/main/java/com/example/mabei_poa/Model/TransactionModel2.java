@@ -4,10 +4,10 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
-public class TransactionModel implements Serializable {
+public class TransactionModel2 implements Serializable {
 
     private String transactionId;
-    private Long timeInMillis;
+    private Date time;
     private Map<String, Double> cartDetails;
     private double totalAmount;
     private double receivedAmount;
@@ -18,12 +18,12 @@ public class TransactionModel implements Serializable {
     private String transactionType;
     private double waterlessProfit;
 
-    public TransactionModel() {
+    public TransactionModel2() {
     }
 
-    public TransactionModel(String transactionId, Long timeInMillis, Map<String, Double> cartDetails, double totalAmount, double receivedAmount, double changeAmount, String paymentMethod, String note, double profit, String transactionType, double waterlessProfit) {
+    public TransactionModel2(String transactionId, Date time, Map<String, Double> cartDetails, double totalAmount, double receivedAmount, double changeAmount, String paymentMethod, String note, double profit, String transactionType, double waterlessProfit) {
         this.transactionId = transactionId;
-        this.timeInMillis = timeInMillis;
+        this.time = time;
         this.cartDetails = cartDetails;
         this.totalAmount = totalAmount;
         this.receivedAmount = receivedAmount;
@@ -51,12 +51,12 @@ public class TransactionModel implements Serializable {
         this.transactionId = transactionId;
     }
 
-    public Long getTimeInMillis() {
-        return timeInMillis;
+    public Date getTime() {
+        return time;
     }
 
-    public void setTimeInMillis(Long timeInMillis) {
-        this.timeInMillis = timeInMillis;
+    public void setTime(Date time) {
+        this.time = time;
     }
 
     public Map<String, Double> getCartDetails() {

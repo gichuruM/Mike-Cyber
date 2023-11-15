@@ -1,6 +1,7 @@
 package com.example.mabei_poa.Fragment;
 
 import static com.example.mabei_poa.Adapter.AllProductsAdapter.temporaryCartList;
+import static com.example.mabei_poa.ProductsActivity.TAG;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -13,16 +14,17 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import com.example.mabei_poa.Adapter.AllProductsAdapter;
 import com.example.mabei_poa.AddNewProductActivity;
 import com.example.mabei_poa.ExtraClasses.InternalDataBase;
+import com.example.mabei_poa.HomeActivity;
 import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.ProductsActivity;
 import com.example.mabei_poa.R;
@@ -31,6 +33,11 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -38,13 +45,16 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class AllProductsFragment extends Fragment {
 
     FloatingActionButton addProduct, finishSelecting;
     RecyclerView recyclerView;
-    ArrayList<ProductModel> allProductsList;
     SwitchMaterial lowStockSwitch;
+
+    static public DatabaseReference productDBRef = FirebaseDatabase.getInstance().getReference("products");
+    static public ValueEventListener productEventListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -55,7 +65,6 @@ public class AllProductsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         addProduct = view.findViewById(R.id.addProduct);
         finishSelecting = view.findViewById(R.id.finishSelectingProducts);
 
@@ -64,14 +73,6 @@ public class AllProductsFragment extends Fragment {
         recyclerView.setHasFixedSize(true);
 
         lowStockSwitch = view.findViewById(R.id.lowStockSwitch);
-
-        //Stock switch has been turned on or off
-        lowStockSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                dataInitialization(isChecked);
-            }
-        });
 
         if(ProductsActivity.activityType.equals("Cart")){
             finishSelecting.setVisibility(View.VISIBLE);
@@ -82,6 +83,15 @@ public class AllProductsFragment extends Fragment {
             addProduct.setVisibility(View.VISIBLE);
             lowStockSwitch.setVisibility(View.VISIBLE);
         }
+
+        //Stock switch has been turned on or off
+        lowStockSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                dataInitialization(isChecked);
+            }
+        });
+
         //Log.d(TAG, "onViewCreated: on creation tempsize "+temporaryCartList.size());
         addProduct.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,7 +119,7 @@ public class AllProductsFragment extends Fragment {
             ArrayList<ProductModel> productsList = InternalDataBase.getInstance(getActivity()).getAllProducts();
 
             if(productsList == null)
-                dataInitialization(lowStockSwitch.isChecked());
+                dataInitialization(false);
             else {
                 ProductsActivity.productsAdapter = new AllProductsAdapter(getActivity());
 
@@ -125,7 +135,8 @@ public class AllProductsFragment extends Fragment {
     }
 
     private void dataInitialization(boolean lowStock) {
-        allProductsList = new ArrayList<>();
+        boolean updateInternalDB = true;
+        ArrayList<ProductModel> allProductsList = InternalDataBase.getInstance(getActivity()).getAllProducts();
 
         ProgressDialog progressDialog = new ProgressDialog(getActivity());
         progressDialog.setTitle("Loading...");
@@ -133,47 +144,60 @@ public class AllProductsFragment extends Fragment {
         progressDialog.setCancelable(false);
         progressDialog.show();
 
-        FirebaseFirestore.getInstance().collection("products")
-                .orderBy("name", Query.Direction.ASCENDING)
-                .get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @SuppressLint("NotifyDataSetChanged")
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        List<DocumentSnapshot> dsList = queryDocumentSnapshots.getDocuments();
+        if(allProductsList.isEmpty())
+            updateAllProducts(progressDialog);
+        else
+            updatingUIWithProducts(progressDialog,allProductsList);
+    }
 
-                        for(DocumentSnapshot ds: dsList){
-                            ProductModel product = ds.toObject(ProductModel.class);
-                            if(!lowStock)
-                                allProductsList.add(product);
-                            else if(lowStock && product.getQuantity() <= product.getLowStockAlert())
-                                allProductsList.add(product);
-                        }
+    public void updateAllProducts(ProgressDialog progressDialog) {
+        Log.d(TAG, "updateAllProducts: single value event listener triggered");
+        productDBRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                ArrayList<ProductModel> updatedAllProducts = new ArrayList<>();
 
-                        ProductsActivity.productsAdapter = new AllProductsAdapter(getActivity());
+                for(DataSnapshot snap: snapshot.getChildren()){
+                    ProductModel product = snap.getValue(ProductModel.class);
 
-                        AllProductsAdapter.fullProductModelArrayList.clear();
-                        AllProductsAdapter.fullProductModelArrayList.addAll(allProductsList);
-                        //updating sharedPref arrayList
-                        InternalDataBase.getInstance(getActivity()).batchAdditionToAllProducts(allProductsList);
+                    if(product != null)
+                        updatedAllProducts.add(product);
+                }
 
-                        AllProductsAdapter.currentFragment = getString(R.string.category0);
-                        ProductsActivity.productsAdapter.initializingFragmentArray();
-                        
-                        recyclerView.setAdapter(ProductsActivity.productsAdapter);
-                        ProductsActivity.productsAdapter.notifyDataSetChanged();
+                InternalDataBase.getInstance(getActivity()).batchAdditionToAllProducts(updatedAllProducts);
+                updatingUIWithProducts(progressDialog,updatedAllProducts);
+            }
 
-                        if(progressDialog.isShowing())
-                            progressDialog.dismiss();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                        if(progressDialog.isShowing())
-                            progressDialog.dismiss();
-                    }
-                });
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    private void updatingUIWithProducts(ProgressDialog progressDialog, ArrayList<ProductModel> allProducts){
+
+        ArrayList<ProductModel> filteredProductList = new ArrayList<>();
+
+        for(ProductModel p: allProducts){
+            if(!lowStockSwitch.isChecked())
+                filteredProductList.add(p);
+            else if(p.getQuantity() <= p.getLowStockAlert())
+                filteredProductList.add(p);
+        }
+
+        ProductsActivity.productsAdapter = new AllProductsAdapter(getActivity());
+
+        AllProductsAdapter.fullProductModelArrayList.clear();
+        AllProductsAdapter.fullProductModelArrayList.addAll(filteredProductList);
+
+        AllProductsAdapter.currentFragment = "All";
+        ProductsActivity.productsAdapter.initializingFragmentArray();
+
+        recyclerView.setAdapter(ProductsActivity.productsAdapter);
+        ProductsActivity.productsAdapter.notifyDataSetChanged();
+
+        if(progressDialog.isShowing())
+            progressDialog.dismiss();
     }
 }

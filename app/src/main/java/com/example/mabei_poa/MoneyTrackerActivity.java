@@ -28,11 +28,14 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import io.grpc.Internal;
 
 public class MoneyTrackerActivity extends AppCompatActivity {
 
@@ -145,36 +148,21 @@ public class MoneyTrackerActivity extends AppCompatActivity {
 
                     private void finalMoneyTrackingStep(int amount) {
                         //Then get all the transaction
-                        FirebaseFirestore.getInstance().collection("Transactions")
-                                .orderBy("time", Query.Direction.ASCENDING)
-                                .get()
-                                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                    @Override
-                                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                        List<DocumentSnapshot> documentSnapshots = queryDocumentSnapshots.getDocuments();
+                        // TODO: Actions if transactions can't be found
+                        ArrayList<TransactionModel> transactions = InternalDataBase.getInstance(MoneyTrackerActivity.this).getAllTransactions();
+                        Collections.reverse(transactions);
+                        for(TransactionModel t: transactions){
+                            Date date = new Date(t.getTimeInMillis());
+                            if(dateFormat.format(date).equals(datePicked))
+                                moneyTrackerList.add(t);
+                        }
 
-                                        for(DocumentSnapshot ds: documentSnapshots){
-                                            TransactionModel transaction = ds.toObject(TransactionModel.class);
-                                            if(dateFormat.format(transaction.getTime()).equals(datePicked))
-                                                moneyTrackerList.add(transaction);
-                                        }
-                                        //Log.d(TAG, "onSuccess: size "+transactionReportList.size());
-                                        MoneyTrackerAdapter adapter = new MoneyTrackerAdapter(MoneyTrackerActivity.this,moneyTrackerList, amount);
+                        MoneyTrackerAdapter adapter = new MoneyTrackerAdapter(MoneyTrackerActivity.this,moneyTrackerList, amount);
 
-                                        binding.trackingRecyclerView.setAdapter(adapter);
-                                        adapter.notifyDataSetChanged();
+                        binding.trackingRecyclerView.setAdapter(adapter);
+                        adapter.notifyDataSetChanged();
 
-                                        progressDialog.dismiss();
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Toast.makeText(MoneyTrackerActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                                        Log.d(TAG, "onFailure: Report transactions not found");
-                                        progressDialog.dismiss();
-                                    }
-                                });
+                        progressDialog.dismiss();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -198,42 +186,6 @@ public class MoneyTrackerActivity extends AppCompatActivity {
                 binding.btnTrackingDate.setText(datePicked);
 
                 getTransactionsForTracking();
-//                if(trackingData.containsKey(datePicked)){
-//                    Log.d(TAG, "onDateSet: Internal memory");
-//                    binding.todaysStartingCapital.setText(trackingData.get(datePicked).toString());
-//                }
-//                else {
-//                    Log.d(TAG, "onDateSet: External memory");
-//                    String date = dayOfMonth +"-"+ month +"-"+year;
-//                    String altDate = dayOfMonth+"/"+month+"/"+year;
-//                    FirebaseFirestore.getInstance()
-//                            .collection("MoneyTracker")
-//                            .document(date)
-//                            .get()
-//                            .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-//                                @Override
-//                                public void onSuccess(DocumentSnapshot documentSnapshot) {
-//                                    if(documentSnapshot.exists()){
-//                                        Map<String, Object> data = documentSnapshot.getData();
-//
-//                                        binding.todaysStartingCapital.setText(data.get(altDate).toString());
-//                                        InternalDataBase.getInstance(MoneyTrackerActivity.this).addToMoneyTracking(datePicked,Integer.parseInt(data.get(altDate).toString()));
-//                                    } else {
-//                                        Log.d(TAG, "onSuccess: document doesn't exist");
-//                                        binding.todaysStartingCapital.setText("1500");
-//                                        InternalDataBase.getInstance(MoneyTrackerActivity.this).addToMoneyTracking(datePicked,1500);
-//                                    }
-//                                }
-//                            })
-//                            .addOnFailureListener(new OnFailureListener() {
-//                                @Override
-//                                public void onFailure(@NonNull Exception e) {
-//                                    Toast.makeText(MoneyTrackerActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-//                                    binding.todaysStartingCapital.setText("1500");
-//                                    InternalDataBase.getInstance(MoneyTrackerActivity.this).addToMoneyTracking(datePicked,1500);
-//                                }
-//                            });
-//                }
             }
         }, Integer.parseInt(thisYear), Integer.parseInt(thisMonth)-1, Integer.parseInt(today));
 

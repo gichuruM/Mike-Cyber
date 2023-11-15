@@ -15,6 +15,7 @@ import com.example.mabei_poa.R;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 
 public class MoneyTrackerAdapter extends RecyclerView.Adapter<MoneyTrackerAdapter.MyViewHolder>{
@@ -42,8 +43,9 @@ public class MoneyTrackerAdapter extends RecyclerView.Adapter<MoneyTrackerAdapte
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         TransactionModel transaction = transactionModels.get(position);
+        Date date = new Date(transaction.getTimeInMillis());
 
-        String time = timeFormat.format(transaction.getTime());
+        String time = timeFormat.format(date);
         holder.time.setText(time);
 
         int cumulativeTotal = 0;
