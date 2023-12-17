@@ -46,21 +46,5 @@ public class ChangingQuantityRunnable implements Runnable{
                         Log.d(TAG, "onSuccess: successfully changed quantity");
                     }
                 });
-
-//        DocumentReference documentReference = FirebaseFirestore.getInstance().collection("products").document(productId);
-//
-//        documentReference.update("quantity",Double.valueOf(productQuantity))
-//                .addOnSuccessListener(new OnSuccessListener<Void>() {
-//                    @Override
-//                    public void onSuccess(Void unused) {
-//                        InternalDataBase.getInstance(context).editProduct(productId,productQuantity);
-//                    }
-//                })
-//                .addOnFailureListener(new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//                        Log.d(TAG, "onFailure: Adjusting quantity failed "+e.getMessage());
-//                    }
-//                });
     }
 }

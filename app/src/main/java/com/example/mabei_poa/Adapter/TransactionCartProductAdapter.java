@@ -51,17 +51,17 @@ public class TransactionCartProductAdapter extends RecyclerView.Adapter<Transact
         if(transactionType.equals("Purchase")){
             holder.transactionProductPrice.setText(String.valueOf(product.getPurchasePrice()));
             Double qty = cartItemDetails.get(product.getId());
-            if(qty != null)
+//            if(qty != null)
                 holder.transactionProductAmount.setText(String.valueOf(qty*product.getPurchasePrice()));
-            else
-                holder.transactionProductAmount.setText("N/A");
+//            else
+//                holder.transactionProductAmount.setText("N/A");
         } else if(transactionType.equals("Sale")){
             holder.transactionProductPrice.setText(String.valueOf(product.getSellingPrice()));
             Double qty = cartItemDetails.get(product.getId());
-            if(qty != null)
+//            if(qty != null)
                 holder.transactionProductAmount.setText(String.valueOf(qty*product.getSellingPrice()));
-            else
-                holder.transactionProductAmount.setText("N/A");
+//            else
+//                holder.transactionProductAmount.setText("N/A");
         }
     }
 

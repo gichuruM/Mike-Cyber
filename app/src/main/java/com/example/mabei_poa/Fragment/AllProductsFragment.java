@@ -1,6 +1,7 @@
 package com.example.mabei_poa.Fragment;
 
 import static com.example.mabei_poa.Adapter.AllProductsAdapter.temporaryCartList;
+import static com.example.mabei_poa.HomeActivity.productDBRef;
 import static com.example.mabei_poa.ProductsActivity.TAG;
 
 import android.annotation.SuppressLint;
@@ -52,9 +53,6 @@ public class AllProductsFragment extends Fragment {
     FloatingActionButton addProduct, finishSelecting;
     RecyclerView recyclerView;
     SwitchMaterial lowStockSwitch;
-
-    static public DatabaseReference productDBRef = FirebaseDatabase.getInstance().getReference("products");
-    static public ValueEventListener productEventListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

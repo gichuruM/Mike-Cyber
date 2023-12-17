@@ -1,6 +1,5 @@
 package com.example.mabei_poa;
 
-import static com.example.mabei_poa.ExtraClasses.ConnectivityReceiver.noConnectivity;
 import static com.example.mabei_poa.HomeActivity.checkConnection;
 import static com.example.mabei_poa.ProductsActivity.TAG;
 

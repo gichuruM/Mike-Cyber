@@ -1,6 +1,7 @@
 package com.example.mabei_poa;
 
 import static com.example.mabei_poa.HomeActivity.SHOP_USER_UID;
+import static com.example.mabei_poa.HomeActivity.transactionDBRef;
 import static com.example.mabei_poa.HomeActivity.userUID;
 import static com.example.mabei_poa.ProductsActivity.TAG;
 
@@ -45,9 +46,6 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
     TransactionAdapter transactionAdapter;
     ArrayList<TransactionModel> transactionsList;
 
-    static public DatabaseReference transactionDBRef = FirebaseDatabase.getInstance().getReference("transactions");
-    static public ValueEventListener transactionEventListener;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,7 +62,7 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
 
     private void getTransactions() {
 
-        ArrayList<TransactionModel> allTransactions = new ArrayList<>();
+        ArrayList<TransactionModel> allTransactions;
         allTransactions = InternalDataBase.getInstance(this).getAllTransactions();
 
         ProgressDialog progressDialog = new ProgressDialog(TransactionActivity.this);
@@ -108,10 +106,21 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
 
     private void updatingUIWithTransactions(ProgressDialog progressDialog, ArrayList<TransactionModel> transactions){
 
+        int unSyncedSize = 0;
         transactionsList = transactions;
 
+        ArrayList<TransactionModel> unsavedTransactions = InternalDataBase.getInstance(this).getOfflineTransactions();
+
+        int count = 0;
+        for(int i = unsavedTransactions.size()-1; i >= 0; i--){
+            transactions.add(count,unsavedTransactions.get(i));
+            count++;
+        }
+
+        unSyncedSize = unsavedTransactions.size();
+        Log.d(TAG, "updatingUIWithTransactions: size "+unSyncedSize);
         transactionAdapter = new TransactionAdapter(
-                TransactionActivity.this,transactionsList, this);
+                TransactionActivity.this,transactionsList, this,unSyncedSize);
 
         binding.transactionRecView.setAdapter(transactionAdapter);
         transactionAdapter.notifyDataSetChanged();
@@ -148,7 +157,10 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         builder.setTitle("Alert");
         builder.setMessage("Are you sure you want to delete this transaction?");
         String id = transactionsList.get(position).getTransactionId();
+        TransactionModel transactionModel = transactionsList.get(position);
         Log.d(TAG, "transactionClicked: ID: "+id);
+        Log.d(TAG, "transactionClicked: "+transactionModel.getTransactionType());
+        Log.d(TAG, "transactionClicked: "+transactionModel.getCartDetails());
 
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
