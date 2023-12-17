@@ -1,5 +1,6 @@
 package com.example.mabei_poa;
 
+import static com.example.mabei_poa.HomeActivity.productDBRef;
 import static com.example.mabei_poa.ProductsActivity.TAG;
 
 import androidx.activity.result.ActivityResultCallback;
@@ -189,7 +190,7 @@ public class AddNewProductActivity extends AppCompatActivity {
                         saveProductToServer(product);
                     } else {
 //                        DocumentReference documentReference = FirebaseFirestore.getInstance().collection("products").document(existingProduct.getId());
-                        DatabaseReference docRef = FirebaseDatabase.getInstance().getReference("products").child(existingProduct.getId());
+                        DatabaseReference docRef = productDBRef.child(existingProduct.getId());
                         //checking if any of the barcodes have been edited
                         boolean barcodeChanged = false;
                         Map<String, Double> existingBarcodes = existingProduct.getBarcodes();
@@ -441,8 +442,7 @@ public class AddNewProductActivity extends AppCompatActivity {
 //                                                    }
 //                                                });
 
-                                        FirebaseDatabase.getInstance()
-                                                .getReference("products")
+                                        productDBRef
                                                 .child(product.getId())
                                                 .setValue(product)
                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {

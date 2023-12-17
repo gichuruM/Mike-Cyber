@@ -33,12 +33,14 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     private Context context;
     private ArrayList<TransactionModel> transactionModels;
     private TransactionClickedInterface transactionClickedInterface;
+    private int notSynced = 0;
     ArrayList<ProductModel> productsList = new ArrayList<>();
 
-    public TransactionAdapter(Context context, ArrayList<TransactionModel> transactionModels, TransactionClickedInterface transactionClickedInterface) {
+    public TransactionAdapter(Context context, ArrayList<TransactionModel> transactionModels, TransactionClickedInterface transactionClickedInterface, int notSynced) {
         this.context = context;
         this.transactionModels = transactionModels;
         this.transactionClickedInterface = transactionClickedInterface;
+        this.notSynced = notSynced;
     }
 
     @NonNull
@@ -62,6 +64,10 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.transactionMethod.setText(transaction.getPaymentMethod());
         holder.transactionType.setText(transaction.getTransactionType());
 
+        if(holder.getAdapterPosition() < notSynced){
+            holder.transactionNotSynced.setVisibility(View.VISIBLE);
+        }
+
         if(transaction.getNote().isEmpty())
             holder.transactionNoteLayout.setVisibility(View.GONE);
         else
@@ -72,6 +78,9 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         Map<String, Double> cartDetails = transaction.getCartDetails();
 
         if(cartDetails != null){
+            Log.d(TAG, "onBindViewHolder: "+cartDetails.size());
+            Log.d(TAG, "onBindViewHolder: "+transaction.getNote());
+            Log.d(TAG, "onBindViewHolder: total "+transaction.getTotalAmount());
             for(String ids : cartDetails.keySet()){
                 ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(context).getAllProducts();
                 for(ProductModel p: allProducts){
@@ -81,6 +90,12 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                 }
             }
 
+            TransactionCartProductAdapter adapter = new TransactionCartProductAdapter(context,productsList,cartDetails,transaction.getTransactionType());
+
+            holder.recyclerView.setAdapter(adapter);
+            holder.recyclerView.setLayoutManager(new LinearLayoutManager(context));
+            holder.recyclerView.setHasFixedSize(true);
+        } else {
             TransactionCartProductAdapter adapter = new TransactionCartProductAdapter(context,productsList,cartDetails,transaction.getTransactionType());
 
             holder.recyclerView.setAdapter(adapter);
@@ -99,7 +114,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         LinearLayout transactionNoteLayout;
         TextView transactionDateTime, transactionReceivedAmount, transactionTotal, transactionChange, transactionMethod, transactionNote, transactionType;
         RecyclerView recyclerView;
-        ImageView deleteTransaction;
+        ImageView deleteTransaction, transactionNotSynced;
 
         public MyViewHolder(@NonNull View itemView, TransactionClickedInterface transactionClickedInterface) {
             super(itemView);
@@ -114,6 +129,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             recyclerView = itemView.findViewById(R.id.transactionProductsRecView);
             transactionType = itemView.findViewById(R.id.typeOfTransaction);
             deleteTransaction = itemView.findViewById(R.id.deleteTransaction);
+            transactionNotSynced = itemView.findViewById(R.id.transactionNotSynced);
 
             deleteTransaction.setOnClickListener(new View.OnClickListener() {
                 @Override

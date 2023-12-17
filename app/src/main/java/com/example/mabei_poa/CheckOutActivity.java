@@ -1,5 +1,7 @@
 package com.example.mabei_poa;
 
+import static com.example.mabei_poa.HomeActivity.checkConnection;
+import static com.example.mabei_poa.HomeActivity.transactionDBRef;
 import static com.example.mabei_poa.ProductsActivity.TAG;
 import static com.example.mabei_poa.SaleToCustomerActivity.cartProductsList;
 import static com.example.mabei_poa.SaleToCustomerActivity.totalAmount;
@@ -59,19 +61,6 @@ public class CheckOutActivity extends AppCompatActivity {
         binding.receivedAmount.setText("");
         binding.receivedAmount.requestFocus();
 
-//        ArrayList<CartModel> savedList = InternalDataBase.getInstance(this).getCart();
-//        for(CartModel sl: savedList){
-//            Log.d(TAG, "onCreate: Saved list: "+sl.getProductTotal());
-//        }
-
-//        for(CartModel c: cartProductsList){
-//            ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(this).getAllProducts();
-//            for(ProductModel p: allProducts){
-//                if(c.getProductId().equals(p.getId())){
-//                    Log.d(TAG, "onCreate: Name "+p.getName()+" quantity "+p.getQuantity());
-//                }
-//            }
-//        }
         binding.autofillReceivedAmount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,7 +108,7 @@ public class CheckOutActivity extends AppCompatActivity {
                     Toast.makeText(CheckOutActivity.this, "Received amount is empty", Toast.LENGTH_SHORT).show();
                 else if(cartProductsList.size() <= 0)
                     Toast.makeText(CheckOutActivity.this, "There are 0 products in the cart", Toast.LENGTH_SHORT).show();
-                else {  //saving the transaction
+                else {  //Getting details of the transaction
                     Long timeInMillis = new Date().getTime();
                     double receivedAmount = Double.parseDouble(binding.receivedAmount.getText().toString());
                     double total = totalAmount;
@@ -195,12 +184,12 @@ public class CheckOutActivity extends AppCompatActivity {
                             cartDetails,total,receivedAmount,changeAmount,payment,note,totalProfit,
                             InternalDataBase.getInstance(CheckOutActivity.this).getCartType(),nonWaterProfit);
 
-                    //Log.d(TAG, "onClick: saving initially "+InternalDataBase.getInstance(CheckOutActivity.this).getUnsavedNotes().size());
+                    //Saving the transaction
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
                             Log.d(TAG, "run: Saving transaction in background");
-                            if(!note.equals("")){
+                            if(!note.equals("") && checkConnection(CheckOutActivity.this)){
                                 SimpleDateFormat dateFormat = new SimpleDateFormat("h:mm a d/M/yy");
                                 NoteModel transactionNote = new NoteModel(dateFormat.format(new Date()),note,randomId,new Date(),false);
                                 Log.d(TAG, "run: Note before: "+transaction.getNote());
@@ -210,7 +199,7 @@ public class CheckOutActivity extends AppCompatActivity {
                                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void unused) {
-                                                saveTransaction(randomId,transaction);
+                                                saveTransaction(transaction);
                                             }
                                         })
                                         .addOnFailureListener(new OnFailureListener() {
@@ -225,30 +214,41 @@ public class CheckOutActivity extends AppCompatActivity {
                                             }
                                         });
                             } else
-                                saveTransaction(randomId,transaction);
+                                saveTransaction(transaction);
                         }
 
-                        private void saveTransaction(String randomId, TransactionModel transaction){
-                            Log.d(TAG, "saveTransaction run: Transaction ");
+                        private void saveTransaction(TransactionModel transaction){
 
-                            DatabaseReference transactionRef = FirebaseDatabase.getInstance().getReference("transactions");
-
-                            transactionRef.child(transaction.getTransactionId())
-                                    .setValue(transaction)
-                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            //Checking for internet connection
+                            if(checkConnection(CheckOutActivity.this)){
+                                transactionDBRef.child(transaction.getTransactionId())
+                                        .setValue(transaction)
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void unused) {
+                                                Log.d(TAG, "onSuccess: Transaction saved successfully");
+                                                Toast.makeText(CheckOutActivity.this, "Transaction saved", Toast.LENGTH_SHORT).show();
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Log.d(TAG, "onFailure: Error saving transaction "+e.getMessage());
+                                                Toast.makeText(CheckOutActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                            } else {
+                                if(InternalDataBase.getInstance(CheckOutActivity.this).addToOfflineTransactions(transaction)){
+                                    InternalDataBase.getInstance(CheckOutActivity.this).setSyncStatus(true);
+                                    Log.d(TAG, "saveTransaction: offline transaction saved");
+                                    runOnUiThread(new Runnable() {
                                         @Override
-                                        public void onSuccess(Void unused) {
-                                            Log.d(TAG, "onSuccess: Transaction saved successfully");
-                                            Toast.makeText(CheckOutActivity.this, "Transaction saved", Toast.LENGTH_SHORT).show();
-                                        }
-                                    })
-                                    .addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            Log.d(TAG, "onFailure: Error saving transaction "+e.getMessage());
-                                            Toast.makeText(CheckOutActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        public void run() {
+                                            Toast.makeText(CheckOutActivity.this, "Transaction saved in offline mode", Toast.LENGTH_SHORT).show();
                                         }
                                     });
+                                }
+                            }
                         }
                     }).start();
 

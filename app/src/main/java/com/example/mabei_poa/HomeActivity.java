@@ -1,7 +1,5 @@
 package com.example.mabei_poa;
 
-import static com.example.mabei_poa.Adapter.AllProductsAdapter.fullProductModelArrayList;
-import static com.example.mabei_poa.ExtraClasses.ConnectivityReceiver.noConnectivity;
 import static com.example.mabei_poa.ProductsActivity.TAG;
 import static com.example.mabei_poa.SaleToCustomerActivity.cartProductsList;
 
@@ -9,10 +7,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -27,33 +23,25 @@ import android.view.animation.AnimationUtils;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.example.mabei_poa.Adapter.AllProductsAdapter;
-import com.example.mabei_poa.ExtraClasses.ConnectivityReceiver;
 import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.ExtraClasses.SyncNotesRunnable;
+import com.example.mabei_poa.ExtraClasses.SyncTransactionRunnable;
 import com.example.mabei_poa.Fragment.AllProductsFragment;
 import com.example.mabei_poa.Model.NoteModel;
 import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.Model.TransactionModel;
 import com.example.mabei_poa.databinding.ActivityHomeBinding;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
-
-import io.grpc.Internal;
 
 public class HomeActivity extends AppCompatActivity{
 
@@ -64,6 +52,11 @@ public class HomeActivity extends AppCompatActivity{
     public static String userUID = "";
     private HandlerThread handlerThread = new HandlerThread("SyncHandler");
     private Handler threadHandler;
+
+    static public DatabaseReference transactionDBRef = FirebaseDatabase.getInstance().getReference("transactions");
+    static public ValueEventListener transactionEventListener;
+    static public DatabaseReference productDBRef = FirebaseDatabase.getInstance().getReference("products");
+    static public ValueEventListener productEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,7 +123,19 @@ public class HomeActivity extends AppCompatActivity{
         binding.syncUnsavedData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SyncNotes();
+                if(checkConnection(HomeActivity.this)){
+                    rotateAnimation = AnimationUtils.loadAnimation(HomeActivity.this,R.anim.rotation);
+                    binding.syncUnsavedData.startAnimation(rotateAnimation);
+
+                    handlerThread.start();
+                    threadHandler = new Handler(handlerThread.getLooper());
+
+                    if(InternalDataBase.getInstance(HomeActivity.this).getUnsavedNotes().size() > 0)
+                        SyncNotes();
+                    if(InternalDataBase.getInstance(HomeActivity.this).getOfflineTransactions().size() > 0)
+                        SyncTransactions();
+                } else
+                    Toast.makeText(HomeActivity.this, "No internet connection", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -140,15 +145,18 @@ public class HomeActivity extends AppCompatActivity{
         ArrayList<TransactionModel> allTransactions = InternalDataBase.getInstance(this).getAllTransactions();
 
 //        Initializing product event listener if it isn't initialized yet
-        if(allProducts.isEmpty() || AllProductsFragment.productEventListener == null){
+        Log.d(TAG, "onCreate: producteventListener"+productEventListener);
+        if(allProducts.isEmpty() || productEventListener == null){
             new Thread(() -> {
+                Log.d(TAG, "onCreate: happening");
                 //Ensuring there isn't more than one eventListener on the dataRef
-                if(AllProductsFragment.productEventListener != null){
-                    AllProductsFragment.productDBRef.removeEventListener(AllProductsFragment.productEventListener);
-                    AllProductsFragment.productEventListener = null;
+                if(productEventListener != null){
+                    productDBRef.removeEventListener(productEventListener);
+                    productEventListener = null;
+                    Log.d(TAG, "onCreate: also happening");
                 }
 
-                AllProductsFragment.productEventListener = new ValueEventListener() {
+                productEventListener = new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         ArrayList<ProductModel> finalAllProductsList = new ArrayList<>();
@@ -169,20 +177,23 @@ public class HomeActivity extends AppCompatActivity{
                     }
                 };
 
-                AllProductsFragment.productDBRef.addValueEventListener(AllProductsFragment.productEventListener);
+                productDBRef.addValueEventListener(productEventListener);
             }).start();
         }
 
         //Initializing transaction event listener if it isn't initialized yet
-        if(allTransactions.isEmpty() || TransactionActivity.transactionEventListener == null) {
+        Log.d(TAG, "onCreate: transactionEventListener"+transactionEventListener);
+        if(allTransactions.isEmpty() || transactionEventListener == null) {
             new Thread(() -> {
+                Log.d(TAG, "onCreate: happening");
                 //Ensuring theres just one event listener in the database
-                if(TransactionActivity.transactionEventListener != null){
-                    TransactionActivity.transactionDBRef.removeEventListener(TransactionActivity.transactionEventListener);
-                    TransactionActivity.transactionEventListener = null;
+                if(transactionEventListener != null){
+                    transactionDBRef.removeEventListener(transactionEventListener);
+                    transactionEventListener = null;
+                    Log.d(TAG, "onCreate: also happening");
                 }
 
-                TransactionActivity.transactionEventListener = new ValueEventListener() {
+                transactionEventListener = new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         ArrayList<TransactionModel> allTransactions = new ArrayList<>();
@@ -205,29 +216,32 @@ public class HomeActivity extends AppCompatActivity{
                     }
                 };
 
-                TransactionActivity.transactionDBRef.orderByChild("timeInMillis").addValueEventListener(TransactionActivity.transactionEventListener);
+                transactionDBRef.orderByChild("timeInMillis").addValueEventListener(transactionEventListener);
             }).start();
         }
+
+        Log.d(TAG, "onCreate: transactionEventListener"+transactionEventListener);
+        Log.d(TAG, "onCreate: productEventListener"+productEventListener);
     }
 
     private void SyncNotes() {
-        if(checkConnection(HomeActivity.this)){
-            rotateAnimation = AnimationUtils.loadAnimation(HomeActivity.this,R.anim.rotation);
-            binding.syncUnsavedData.startAnimation(rotateAnimation);
+        ArrayList<NoteModel> unsavedNotes = InternalDataBase.getInstance(HomeActivity.this).getUnsavedNotes();
+        Log.d(TAG, "run: Uploading notes...");
 
-            ArrayList<NoteModel> unsavedNotes = InternalDataBase.getInstance(HomeActivity.this).getUnsavedNotes();
-            Log.d(TAG, "run: Uploading...");
+        for(NoteModel n: unsavedNotes){
+            Log.d(TAG, "run: posting");
+            SyncNotesRunnable noteSync = new SyncNotesRunnable(HomeActivity.this, n, binding.syncUnsavedData);
+            threadHandler.post(noteSync);
+        }
+    }
 
-            handlerThread.start();
-            threadHandler = new Handler(handlerThread.getLooper());
+    private void SyncTransactions(){
+        ArrayList<TransactionModel> unsavedTransactions = InternalDataBase.getInstance(HomeActivity.this).getOfflineTransactions();
+        Log.d(TAG, "SyncTransactions: uploading transactions...");
 
-            for(NoteModel n: unsavedNotes){
-                Log.d(TAG, "run: posting");
-                SyncNotesRunnable noteSync = new SyncNotesRunnable(HomeActivity.this, n, binding.syncUnsavedData);
-                threadHandler.post(noteSync);
-            }
-        } else {
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+        for(TransactionModel t: unsavedTransactions){
+            SyncTransactionRunnable transactionSync = new SyncTransactionRunnable(HomeActivity.this,t, binding.syncUnsavedData);
+            threadHandler.post(transactionSync);
         }
     }
 

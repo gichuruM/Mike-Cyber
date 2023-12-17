@@ -30,6 +30,7 @@ public class InternalDataBase {
     public static String CART_TYPE = "CART_TYPE";
     public static String PRODUCTS_IN_CART = "PRODUCTS_IN_CART";
     public static String ALL_TRANSACTION = "ALL_TRANSACTIONS";
+    public static String OFFLINE_TRANSACTIONS = "OFFLINE_TRANSACTIONS";
 
     private static ArrayList<NoteModel> unsavedNotes;
 
@@ -65,6 +66,10 @@ public class InternalDataBase {
             editor.putString(ALL_TRANSACTION,gson.toJson(new ArrayList<TransactionModel>()));
             editor.apply();
         }
+        if(getOfflineTransactions() == null){
+            editor.putString(OFFLINE_TRANSACTIONS,gson.toJson(new ArrayList<TransactionModel>()));
+            editor.apply();
+        }
     }
 
     public void batchAdditionToAllProducts(ArrayList<ProductModel> manyProducts){
@@ -96,6 +101,21 @@ public class InternalDataBase {
         if(allProducts.add(productModel)){
             editor.remove(ALL_PRODUCTS);
             editor.putString(ALL_PRODUCTS,gson.toJson(allProducts));
+            editor.apply();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean addToOfflineTransactions(TransactionModel transaction){
+        SharedPreferences.Editor editor = sharedPref.edit();
+        Gson gson = new Gson();
+
+        ArrayList<TransactionModel> offlineTransactions = getOfflineTransactions();
+
+        if(offlineTransactions.add(transaction)){
+            editor.remove(OFFLINE_TRANSACTIONS);
+            editor.putString(OFFLINE_TRANSACTIONS,gson.toJson(offlineTransactions));
             editor.apply();
             return true;
         }
@@ -174,6 +194,27 @@ public class InternalDataBase {
                 }
             }
         }
+        return false;
+    }
+
+    public boolean removeFromUnsavedTransactions(TransactionModel transaction){
+        SharedPreferences.Editor editor = sharedPref.edit();
+        Gson gson = new Gson();
+
+        ArrayList<TransactionModel> transactionModels = getOfflineTransactions();
+
+        for(TransactionModel t: transactionModels){
+            if(t.getTransactionId().equals(t.getTransactionId())){
+                if(transactionModels.remove(t)){
+                    editor.remove(OFFLINE_TRANSACTIONS);
+                    editor.putString(OFFLINE_TRANSACTIONS,gson.toJson(transactionModels));
+                    editor.apply();
+                    Log.d(TAG, "removeFromUnsavedTransactions: successfully removed from unsaved transactions");
+                    return  true;
+                }
+            }
+        }
+
         return false;
     }
 
@@ -266,6 +307,14 @@ public class InternalDataBase {
         String json = sharedPref.getString(ALL_TRANSACTION,"null");
         Gson gson = new Gson();
         
+        return gson.fromJson(json,type);
+    }
+
+    public ArrayList<TransactionModel> getOfflineTransactions(){
+        Type type = new TypeToken<ArrayList<TransactionModel>>(){}.getType();
+        String json = sharedPref.getString(OFFLINE_TRANSACTIONS,"null");
+        Gson gson = new Gson();
+
         return gson.fromJson(json,type);
     }
 
