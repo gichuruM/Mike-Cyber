@@ -42,6 +42,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import io.grpc.Internal;
 
@@ -109,10 +110,12 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                 if(s.toString().equals("")) return;
 
                 String scanResult = s.toString().trim();
-
+                Log.d(TAG, "afterTextChanged: *----------*");
+                Log.d(TAG, "afterTextChanged: scanResult "+scanResult);
+                Log.d(TAG, "afterTextChanged: previous "+previousString);
                 if(scanResult.equals(previousString)){
-
-                    if(scanFirstDigit != ""){
+                    Log.d(TAG, "afterTextChanged: passed");
+                    if(!Objects.equals(scanFirstDigit, "")){
                         String newPreviousString = scanFirstDigit+previousString;
                         scanFirstDigit = "";
                         prepareScanningResults(newPreviousString);
@@ -228,6 +231,13 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
     }
 
     private void scanningResults(String scannedBarcode, ArrayList<ProductModel> scanningArray){
+
+        if (!scannedBarcode.matches("\\d+")){
+            Toast.makeText(this, "Invalid scan code!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
         //To take care of situations where the barcode starts with 0
         long barcode = Long.parseLong(scannedBarcode);
 

@@ -9,6 +9,7 @@ import static com.example.mabei_poa.SaleToCustomerActivity.totalAmount;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -44,8 +45,8 @@ import java.util.UUID;
 public class CheckOutActivity extends AppCompatActivity {
 
     ActivityCheckOutBinding binding;
-    private HandlerThread handlerThread = new HandlerThread("changingQuantity");
-    private Handler handler;
+    public static HandlerThread handlerThread = new HandlerThread("changingQuantity");
+    public static Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,49 +123,28 @@ public class CheckOutActivity extends AppCompatActivity {
                     total = Math.round(total * 100)/100;
                     Log.d(TAG, "onClick: interim total "+total);
 
-                    //Thread for changing the quantity of items after a sale
-                    handlerThread.start();
-                    handler = new Handler(handlerThread.getLooper());
-
-                    if(InternalDataBase.getInstance(CheckOutActivity.this).getCartType().equals("Purchase")){
+                    String cartType = InternalDataBase.getInstance(CheckOutActivity.this).getCartType();
+                    //Inverting values in case it's a purchase, counting profit for sale
+                    if(cartType.equals("Purchase")){
                         receivedAmount = -receivedAmount;
                         total = -total;
-                        //Adjusting quantity after transaction
+                    } else if(cartType.equals("Sale")){
+                        ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(CheckOutActivity.this).getAllProducts();
+
                         for(CartModel c: cartProductsList){
-                            ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(CheckOutActivity.this).getAllProducts();
                             for(ProductModel p: allProducts){
                                 if(c.getProductId().equals(p.getId())){
-
-                                    ChangingQuantityRunnable editQuantity = new ChangingQuantityRunnable(CheckOutActivity.this,p.getId(),p.getQuantity()+c.getQuantity());
-                                    handler.post(editQuantity);
-                                }
-                            }
-                        }
-                    }
-                    if(InternalDataBase.getInstance(CheckOutActivity.this).getCartType().equals("Sale")){
-                        for(CartModel c: cartProductsList){
-                            ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(CheckOutActivity.this).getAllProducts();
-                            for(ProductModel p: allProducts){
-                                if(c.getProductId().equals(p.getId())){
-                                    //Adjusting quantity after transaction
-                                    double adjustedQty = Math.round((p.getQuantity() - c.getQuantity()) * 100);
-                                    adjustedQty = adjustedQty/100;
-                                    Log.d(TAG, "onClick: adjusted qty "+adjustedQty+" old qty "+p.getQuantity());
-                                    ChangingQuantityRunnable editQuantity = new ChangingQuantityRunnable(CheckOutActivity.this,p.getId(),adjustedQty);
-                                    handler.post(editQuantity);
-
-                                    //totalProfit += (p.getSellingPrice() - p.getPurchasePrice())*c.getQuantity();
                                     double productTotalSelling = Math.round(p.getSellingPrice()*c.getQuantity());
                                     double productTotalBuying = p.getPurchasePrice()*c.getQuantity();
 
                                     int remainder = (int) (productTotalSelling % 5);
                                     if(remainder != 0)
                                         productTotalSelling += (5 - remainder);
-                                    
+
                                     totalProfit += (productTotalSelling - productTotalBuying);
                                     //Calculating the non-water profit
                                     if(!(c.getProductId().equals("61cfbdc7-63fa-4012-9f1f-220f2e0d0863") ||
-                                        c.getProductId().equals("53fbab78-2f31-40c9-b4bb-690096416bc7"))){
+                                            c.getProductId().equals("53fbab78-2f31-40c9-b4bb-690096416bc7"))){
                                         nonWaterProfit += (productTotalSelling - productTotalBuying);
                                     }
                                 }
@@ -184,15 +164,20 @@ public class CheckOutActivity extends AppCompatActivity {
                             cartDetails,total,receivedAmount,changeAmount,payment,note,totalProfit,
                             InternalDataBase.getInstance(CheckOutActivity.this).getCartType(),nonWaterProfit);
 
+                    //Adjusting quantities if theres an internet connection
+                    boolean internetConnection = checkConnection(CheckOutActivity.this);
+                    if(internetConnection)
+                        changeQty(CheckOutActivity.this, transaction);
+
                     //Saving the transaction
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
                             Log.d(TAG, "run: Saving transaction in background");
-                            if(!note.equals("") && checkConnection(CheckOutActivity.this)){
+                            if(!note.equals("") && internetConnection){
                                 SimpleDateFormat dateFormat = new SimpleDateFormat("h:mm a d/M/yy");
                                 NoteModel transactionNote = new NoteModel(dateFormat.format(new Date()),note,randomId,new Date(),false);
-                                Log.d(TAG, "run: Note before: "+transaction.getNote());
+
                                 FirebaseFirestore.getInstance().collection("Notes")
                                         .document(randomId)
                                         .set(transactionNote)
@@ -218,9 +203,8 @@ public class CheckOutActivity extends AppCompatActivity {
                         }
 
                         private void saveTransaction(TransactionModel transaction){
-
                             //Checking for internet connection
-                            if(checkConnection(CheckOutActivity.this)){
+                            if(internetConnection){
                                 transactionDBRef.child(transaction.getTransactionId())
                                         .setValue(transaction)
                                         .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -257,6 +241,41 @@ public class CheckOutActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    public static void changeQty(Context context, TransactionModel newTransaction){
+
+        if(handler == null){
+            handlerThread.start();
+            handler = new Handler(handlerThread.getLooper());
+        }
+
+        ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(context).getAllProducts();
+
+        if(newTransaction.getTransactionType().equals("Purchase")){
+            for(String key: newTransaction.getCartDetails().keySet()){
+                for(ProductModel p: allProducts){
+                    if(key.equals(p.getId())){
+                        ChangingQuantityRunnable editQuantity = new ChangingQuantityRunnable(context,p.getId(),p.getQuantity()+newTransaction.getCartDetails().get(key));
+                        handler.post(editQuantity);
+                    }
+                }
+            }
+        }
+        if(newTransaction.getTransactionType().equals("Sale")){
+            for(String key: newTransaction.getCartDetails().keySet()){
+                for(ProductModel p: allProducts){
+                    if(key.equals(p.getId())){
+                        //Adjusting quantity after transaction
+                        double adjustedQty = Math.round((p.getQuantity() - newTransaction.getCartDetails().get(key)) * 100);
+                        adjustedQty = adjustedQty/100;
+                        Log.d(TAG, "onClick: adjusted qty "+adjustedQty+" old qty "+p.getQuantity());
+                        ChangingQuantityRunnable editQuantity = new ChangingQuantityRunnable(context,p.getId(),adjustedQty);
+                        handler.post(editQuantity);
+                    }
+                }
+            }
+        }
     }
 
     private void changeCalculation() {
