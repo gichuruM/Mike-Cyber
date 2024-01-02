@@ -204,7 +204,7 @@ public class InternalDataBase {
         ArrayList<TransactionModel> transactionModels = getOfflineTransactions();
 
         for(TransactionModel t: transactionModels){
-            if(t.getTransactionId().equals(t.getTransactionId())){
+            if(t.getTransactionId().equals(transaction.getTransactionId())){
                 if(transactionModels.remove(t)){
                     editor.remove(OFFLINE_TRANSACTIONS);
                     editor.putString(OFFLINE_TRANSACTIONS,gson.toJson(transactionModels));

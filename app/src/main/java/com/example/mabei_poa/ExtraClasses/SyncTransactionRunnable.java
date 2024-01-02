@@ -29,6 +29,9 @@ public class SyncTransactionRunnable implements Runnable{
 
     @Override
     public void run() {
+
+        CheckOutActivity.changeQty(context,transaction);
+
         transactionDBRef.child(transaction.getTransactionId())
                 .setValue(transaction)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
