@@ -116,7 +116,7 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                 if(scanResult.equals(previousString)){
                     Log.d(TAG, "afterTextChanged: passed");
                     if(!Objects.equals(scanFirstDigit, "")){
-                        String newPreviousString = scanFirstDigit+previousString;
+                        String newPreviousString = scanFirstDigit+previousString;                                                                                                                                                                 
                         scanFirstDigit = "";
                         prepareScanningResults(newPreviousString);
                     } else
@@ -243,10 +243,21 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
 
         boolean restricted = false;
         //Allowed Products: Brown bread BB, Bread BB, Bread half BB, Bread Tpremium, Bread Tosha, stars
+        //Cakes za 5, Cakes, Airtel airtime, Safaricom airtime, njugu, crips, Elliots
         String[] allowedProducts = {
                 "bd29755d-b6bc-4b9f-9e62-7dabeaff086b", "bfbcb65e-0245-4705-8598-dca56550aa99",
                 "1dadc5ab-27df-4d33-b949-8488d4651611", "010c8495-2737-4467-9d1b-e9c17df48266",
-                "211d4583-5286-49be-a39e-2d990f9128c6", "01d8c835-3e9a-4ea8-ad45-2eb50bb2331c"};
+                "211d4583-5286-49be-a39e-2d990f9128c6", "01d8c835-3e9a-4ea8-ad45-2eb50bb2331c",
+                "71416c57-b1f3-4034-bac5-6eb3c166e262", "bd945ac5-b3c4-45f4-8383-606eb03cda3f",
+                "0df2787c-f9c3-452a-bed5-1037c4f5ab4c", "656abdc4-6df7-4cd1-b19d-01bfa9450f2c",
+                "6af31eb4-561a-4275-8402-8095a67045a9", "c1c36681-ad6b-4a8c-8022-ced0ba96b417",
+                "4cf81390-7e76-47de-be26-a2cedaf56dd1", "815d8478-57e8-46e6-b454-b5b4089f6ebf",
+                "b49afbc6-e840-4109-a054-c6b527d7d950", "c4bf90d8-ff7f-4843-b842-66cf19caf74d",
+                "15c348c2-3c48-4559-9da8-9764850cd4b7", "5fcd47bf-bc34-4ddc-8d0d-1142f0b897e7",
+                "0a7ff1d9-b32a-4d26-97e2-7728c2bcf4d1", "92ca2317-8e88-44e7-ae1f-bbfe4529b123",
+                "67173dc1-78fd-4429-b204-afdf1a4ddda2", "9c612bef-60aa-40c7-9978-345134eca29a",
+                "07d98efc-cfff-4488-90ea-a41d22775b96", "8d91e74a-db72-41c5-8b9d-5b5b699ef561",
+                "e684168c-d602-49a7-bae2-bde7e0eece44", "95d2e56a-d266-4c68-9400-3b0c0ab1fd4c"};
 
         if(cartProductsList.size() > 0){
             for(ProductModel p: scanningArray){
@@ -274,7 +285,7 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                                 pos++;
                                 if(c.getProductId().equals(p.getId())){
                                     double quantity = c.getQuantity() + productBarcodes.get(key);
-                                    Toast.makeText(this, "Product already in cart quantity "+quantity, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(this, "New quantity "+productBarcodes.get(key), Toast.LENGTH_LONG).show();
                                     cartProductsList.remove(cartProductsList.get(pos));
                                     cartAdapter.notifyItemRemoved(pos);
 

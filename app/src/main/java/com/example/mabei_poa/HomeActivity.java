@@ -255,6 +255,7 @@ public class HomeActivity extends AppCompatActivity{
         CardView moneyTracker = view.findViewById(R.id.moneyTracker);
         CardView newTransaction = view.findViewById(R.id.newTransaction);
         CardView stockAnalysis = view.findViewById(R.id.stockAnalysis);
+        CardView commission = view.findViewById(R.id.commission);
 
         moneyTracker.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -298,6 +299,16 @@ public class HomeActivity extends AppCompatActivity{
                     Toast.makeText(HomeActivity.this, "Access denied", Toast.LENGTH_SHORT).show();
                 else
                     startActivity(new Intent(HomeActivity.this,StockAnalysis.class));
+            }
+        });
+
+        commission.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomSheetDialog.cancel();
+
+                Intent intent = new Intent(HomeActivity.this,CommissionActivity.class);
+                startActivity(intent);
             }
         });
     }
