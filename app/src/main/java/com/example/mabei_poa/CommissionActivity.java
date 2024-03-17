@@ -65,13 +65,14 @@ public class CommissionActivity extends AppCompatActivity {
         }
 
         progressDialog.cancel();
-        double commission = (revenue * 110)/10000;
+        double commission = (revenue * 138)/13000;
 
         //Rounding up the total to the nearest multiple of 5
         int remainder = (int) (commission % 5);
         if (remainder != 0)
             commission -= remainder;
 
+        commission = (int) commission;
         binding.commissionAmount.setText(String.valueOf(commission));
     }
 }

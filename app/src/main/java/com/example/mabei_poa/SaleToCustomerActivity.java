@@ -237,7 +237,6 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
             return;
         }
 
-
         //To take care of situations where the barcode starts with 0
         long barcode = Long.parseLong(scannedBarcode);
 
