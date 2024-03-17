@@ -160,7 +160,7 @@ public class ReportsActivity extends AppCompatActivity {
                 }
             }
         }
-        Log.d(TAG, "onSuccess: size "+transactionReportList.size());
+
         ReportDataAdapter adapter = new ReportDataAdapter(transactionReportList);
 
         binding.reportRecView.setLayoutManager(new LinearLayoutManager(ReportsActivity.this));
