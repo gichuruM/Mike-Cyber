@@ -135,19 +135,24 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
 
         Query oldTransactionQuery = transactionDBRef.orderByChild("timeInMillis").endAt(weekAgoInMillis);
 
-        oldTransactionQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+        new Thread(new Runnable() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for(DataSnapshot snap: snapshot.getChildren()){
-                    snap.getRef().removeValue();
-                }
-            }
+            public void run() {
+                oldTransactionQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for(DataSnapshot snap: snapshot.getChildren()){
+                            snap.getRef().removeValue();
+                        }
+                    }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.d(TAG, "onCancelled: Error retrieve old transactions "+error.getMessage());
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.d(TAG, "onCancelled: Error retrieve old transactions "+error.getMessage());
+                    }
+                });
             }
-        });
+        }).start();
     }
 
     @Override

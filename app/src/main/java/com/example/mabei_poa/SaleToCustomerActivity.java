@@ -388,3 +388,4 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
         }
     }
 }
+//TODO: where products would have been lost, quantities coming back aren't the ones set initially
