@@ -231,7 +231,7 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
     }
 
     private void scanningResults(String scannedBarcode, ArrayList<ProductModel> scanningArray){
-
+        //Ensuring scanned code doesn't have non-numbers to avoid crushing
         if (!scannedBarcode.matches("\\d+")){
             Toast.makeText(this, "Invalid scan code!", Toast.LENGTH_SHORT).show();
             return;
@@ -258,84 +258,52 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                 "07d98efc-cfff-4488-90ea-a41d22775b96", "8d91e74a-db72-41c5-8b9d-5b5b699ef561",
                 "e684168c-d602-49a7-bae2-bde7e0eece44", "95d2e56a-d266-4c68-9400-3b0c0ab1fd4c"};
 
-        if(cartProductsList.size() > 0){
-            for(ProductModel p: scanningArray){
-                Map<String, Double> productBarcodes = p.getBarcodes();
 
-                for(String key: productBarcodes.keySet()){
-                    if(scannedBarcode.equals(key) || barcode == Long.parseLong(key)){
+        for(ProductModel p: scanningArray){
+            Map<String, Double> productBarcodes = p.getBarcodes();  //each product can have up to 3 barcodes for the different quantities
 
-                        //checking if it's a vendor purchase and if the product is restricted
-                        if(InternalDataBase.getInstance(SaleToCustomerActivity.this).getCartType().equals("Purchase")){
-                            restricted = true;
-                            for(int i = 0; i < allowedProducts.length; i++){
-                                if(p.getId().equals(allowedProducts[i])){
-                                    restricted = false;
-                                    break;
-                                }
+            for(String key: productBarcodes.keySet()){
+                if(scannedBarcode.equals(key) || barcode == Long.parseLong(key)){
+
+                    //checking if it's a vendor purchase and if the product is restricted
+                    if(InternalDataBase.getInstance(SaleToCustomerActivity.this).getCartType().equals("Purchase")){
+                        restricted = true;
+                        for(int i = 0; i < allowedProducts.length; i++){
+                            if(p.getId().equals(allowedProducts[i])){
+                                restricted = false;
+                                break;
                             }
-                        }
-
-                        if(!restricted){
-                            boolean inCart = false;
-
-                            int pos = -1;
-                            for(CartModel c: cartProductsList){
-                                pos++;
-                                if(c.getProductId().equals(p.getId())){
-                                    double quantity = c.getQuantity() + productBarcodes.get(key);
-                                    Toast.makeText(this, "New quantity "+productBarcodes.get(key), Toast.LENGTH_LONG).show();
-                                    cartProductsList.remove(cartProductsList.get(pos));
-                                    cartAdapter.notifyItemRemoved(pos);
-
-                                    CartModel cartModel = new CartModel(p.getId(),quantity,p.getSellingPrice()*quantity);
-                                    cartProductsList.add(pos, cartModel);
-                                    cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
-                                    binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
-                                    inCart = true;
-                                    break;
-                                }
-                            }
-
-                            if(!inCart){
-                                CartModel cartModel = new CartModel(p.getId(),productBarcodes.get(key),p.getSellingPrice());
-                                cartProductsList.add(cartModel);
-                                cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
-                                binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
-                            }
-                            InternalDataBase.getInstance(this).setNewCart(cartProductsList);
-                        } else {
-                            Toast.makeText(SaleToCustomerActivity.this, "Access denied", Toast.LENGTH_SHORT).show();
                         }
                     }
-                }
-            }
-        } else {
-            for(ProductModel p: scanningArray) {
-                Map<String, Double> productBarcodes = p.getBarcodes();
 
-                for(String key: productBarcodes.keySet()){
-                    if(scannedBarcode.equals(key) || barcode == Long.parseLong(key)){
+                    if(!restricted){
+                        boolean inCart = false;
+                        //checking if the last product in the list is a similar product otherwise create new product in cart
+                        if(cartProductsList.size() > 0 && cartProductsList.get(cartProductsList.size()-1).getProductId().equals(p.getId())){
+                            int pos = cartProductsList.size()-1;
+                            CartModel c = cartProductsList.get(pos);
 
-                        //checking if it's a vendor purchase and if the product is restricted
-                        if(InternalDataBase.getInstance(SaleToCustomerActivity.this).getCartType().equals("Purchase")){
-                            restricted = true;
-                            for(int i = 0; i < allowedProducts.length; i++){
-                                if(p.getId().equals(allowedProducts[i])){
-                                    restricted = false;
-                                    break;
-                                }
-                            }
+                            double quantity = c.getQuantity() + productBarcodes.get(key);
+                            Toast.makeText(this, "New quantity "+productBarcodes.get(key), Toast.LENGTH_LONG).show();
+                            cartProductsList.remove(cartProductsList.get(pos));
+                            cartAdapter.notifyItemRemoved(pos);
+
+                            CartModel cartModel = new CartModel(p.getId(),quantity,p.getSellingPrice()*quantity);
+                            cartProductsList.add(pos, cartModel);
+                            cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
+                            binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
+                            inCart = true;
                         }
 
-                        if(!restricted){
+                        if(!inCart){
                             CartModel cartModel = new CartModel(p.getId(),productBarcodes.get(key),p.getSellingPrice());
                             cartProductsList.add(cartModel);
-                            InternalDataBase.getInstance(this).setNewCart(cartProductsList);
                             cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
-                        } else {
-                            Toast.makeText(SaleToCustomerActivity.this, "Access denied", Toast.LENGTH_SHORT).show();
+                            binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
                         }
+                        InternalDataBase.getInstance(this).setNewCart(cartProductsList);
+                    } else {
+                        Toast.makeText(SaleToCustomerActivity.this, "Access denied", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -380,6 +348,8 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                 cartModel.setProductTotal((double) productTotal);
                 view.setText(String.valueOf(productTotal));
                 totalCartAmount();
+                InternalDataBase.getInstance(this).setNewCart(cartProductsList);
+                break;
             }
         }
 
@@ -388,3 +358,4 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
         }
     }
 }
+//TODO: where products would have been lost, quantities coming back aren't the ones set initially

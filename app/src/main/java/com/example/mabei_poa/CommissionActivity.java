@@ -65,7 +65,7 @@ public class CommissionActivity extends AppCompatActivity {
         }
 
         progressDialog.cancel();
-        double commission = (revenue * 138)/13000;
+        double commission = (revenue * 138)/15500;
 
         //Rounding up the total to the nearest multiple of 5
         int remainder = (int) (commission % 5);
