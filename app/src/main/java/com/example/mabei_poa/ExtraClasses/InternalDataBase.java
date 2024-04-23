@@ -27,6 +27,7 @@ public class InternalDataBase {
     public static String UNSAVED_NOTES = "UNSAVED_NOTES";
     public static String SYNC_STATUS = "SYNC_STATUS";
     public static String MONEY_TRACKING = "MONEY_TRACKING";
+    public static String FLOAT_TRACKING = "FLOAT_TRACKING";
     public static String CART_TYPE = "CART_TYPE";
     public static String PRODUCTS_IN_CART = "PRODUCTS_IN_CART";
     public static String ALL_TRANSACTION = "ALL_TRANSACTIONS";
@@ -54,11 +55,16 @@ public class InternalDataBase {
             editor.putString(MONEY_TRACKING,gson.toJson(map));
             editor.apply();
         }
+        if(getFloatData() == null){
+            Map<String, Integer> map = new HashMap<>();
+            editor.putString(FLOAT_TRACKING,gson.toJson(map));
+            editor.apply();
+        }
         if(getCartType() == null){
             editor.putString(CART_TYPE,"noType");
             editor.apply();
         }
-        if(getCartType() == null){
+        if(getCart() == null){
             editor.putString(PRODUCTS_IN_CART,gson.toJson(new ArrayList<CartModel>()));
             editor.apply();
         }
@@ -168,9 +174,33 @@ public class InternalDataBase {
         return true;
     }
 
+    public boolean addToFloatTracking(String date, int capital){
+        SharedPreferences.Editor editor = sharedPref.edit();
+        Gson gson = new Gson();
+
+        Map<String, Integer> floatTracking = getFloatData();
+
+        if(floatTracking == null) return false;
+        Log.d(TAG, "addToFloatTracking: Adding Starting Floating Capital");
+
+        floatTracking.put(date,capital);
+        editor.remove(FLOAT_TRACKING);
+        editor.putString(FLOAT_TRACKING,gson.toJson(floatTracking));
+        editor.apply();
+
+        return true;
+    }
+
     public Map<String, Integer> getTrackingData(){
         Type type = new TypeToken<Map<String, Integer>>(){}.getType();
         String json = sharedPref.getString(MONEY_TRACKING,"null");
+        Gson gson = new Gson();
+        return gson.fromJson(json,type);
+    }
+
+    public Map<String, Integer> getFloatData(){
+        Type type = new TypeToken<Map<String, Integer>>(){}.getType();
+        String json = sharedPref.getString(FLOAT_TRACKING,"null");
         Gson gson = new Gson();
         return gson.fromJson(json,type);
     }

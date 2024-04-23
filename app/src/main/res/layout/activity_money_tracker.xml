@@ -92,6 +92,4 @@
         android:id="@+id/trackingRecyclerView"
         tools:listitem="@layout/one_transaction_tracking_layout"/>
 
-
-
 </LinearLayout>

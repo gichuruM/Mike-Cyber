@@ -43,6 +43,7 @@ public class MoneyTrackerAdapter extends RecyclerView.Adapter<MoneyTrackerAdapte
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         TransactionModel transaction = transactionModels.get(position);
+
         Date date = new Date(transaction.getTimeInMillis());
 
         String time = timeFormat.format(date);
@@ -55,7 +56,14 @@ public class MoneyTrackerAdapter extends RecyclerView.Adapter<MoneyTrackerAdapte
         cumulativeTotal += trackingMoneyTotal;
         holder.accumulatingAmount.setText(String.valueOf(cumulativeTotal));
         holder.transactionAmount.setText(String.valueOf(transaction.getTotalAmount()));
-        holder.transactionType.setText(transaction.getTransactionType());
+        if(transaction.getTransactionType().equals("Mpesa Deposit"))
+            holder.transactionType.setText("Deposit");
+        else if(transaction.getTransactionType().equals("Mpesa Withdrawal"))
+            holder.transactionType.setText("Withdraw");
+        else if(transaction.getTransactionType().equals("Withdrawal"))
+            holder.transactionType.setText("Withdraw");
+        else
+            holder.transactionType.setText(transaction.getTransactionType());
     }
 
     @Override

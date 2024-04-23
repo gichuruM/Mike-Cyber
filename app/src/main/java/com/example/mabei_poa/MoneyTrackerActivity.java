@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import io.grpc.Internal;
 
@@ -50,7 +51,7 @@ public class MoneyTrackerActivity extends AppCompatActivity {
         binding = ActivityMoneyTrackerBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        getSupportActionBar().hide();
+        Objects.requireNonNull(getSupportActionBar()).hide();
 
         moneyTrackerList = new ArrayList<>();
 
@@ -153,8 +154,11 @@ public class MoneyTrackerActivity extends AppCompatActivity {
                         Collections.reverse(transactions);
                         for(TransactionModel t: transactions){
                             Date date = new Date(t.getTimeInMillis());
-                            if(dateFormat.format(date).equals(datePicked))
-                                moneyTrackerList.add(t);
+                            if(dateFormat.format(date).equals(datePicked)){
+                                if(!t.getPaymentMethod().equals("Mpesa")){
+                                    moneyTrackerList.add(t);
+                                }
+                            }
                         }
 
                         MoneyTrackerAdapter adapter = new MoneyTrackerAdapter(MoneyTrackerActivity.this,moneyTrackerList, amount);

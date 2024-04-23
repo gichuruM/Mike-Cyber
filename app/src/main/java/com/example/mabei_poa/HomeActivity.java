@@ -113,10 +113,10 @@ public class HomeActivity extends AppCompatActivity{
             }
         });
 
-        binding.notes.setOnClickListener(new View.OnClickListener() {
+        binding.mpesa.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(HomeActivity.this, NotesActivity.class));
+                startActivity(new Intent(HomeActivity.this,MpesaFloatTracking.class));
             }
         });
 
@@ -256,6 +256,7 @@ public class HomeActivity extends AppCompatActivity{
         CardView newTransaction = view.findViewById(R.id.newTransaction);
         CardView stockAnalysis = view.findViewById(R.id.stockAnalysis);
         CardView commission = view.findViewById(R.id.commission);
+        CardView notes = view.findViewById(R.id.notes);
 
         moneyTracker.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -308,6 +309,16 @@ public class HomeActivity extends AppCompatActivity{
                 bottomSheetDialog.cancel();
 
                 Intent intent = new Intent(HomeActivity.this,CommissionActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        notes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomSheetDialog.cancel();
+
+                Intent intent = new Intent(HomeActivity.this, NotesActivity.class);
                 startActivity(intent);
             }
         });
