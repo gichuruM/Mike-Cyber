@@ -92,7 +92,7 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
                         updatedAllTransactions.add(transaction);
                 }
                 Collections.reverse(updatedAllTransactions);
-                Log.d(TAG, "onDataChange: Transactions product size "+updatedAllTransactions.size());
+                //Log.d(TAG, "onDataChange: Transactions product size "+updatedAllTransactions.size());
                 InternalDataBase.getInstance(TransactionActivity.this).batchAdditionToAllTransactions(updatedAllTransactions);
                 updatingUIWithTransactions(progressDialog, updatedAllTransactions);
             }
