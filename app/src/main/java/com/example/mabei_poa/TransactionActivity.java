@@ -14,6 +14,9 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import androidx.appcompat.widget.SearchView;
 import android.widget.Toast;
 
 import com.example.mabei_poa.Adapter.AllProductsAdapter;
@@ -52,8 +55,6 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         binding = ActivityTransactionBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        Objects.requireNonNull(getSupportActionBar()).hide();
-
         transactionsList = new ArrayList<>();
         binding.transactionRecView.setLayoutManager(new LinearLayoutManager(this));
         binding.transactionRecView.setHasFixedSize(true);
@@ -77,9 +78,36 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         else
             updatingUIWithTransactions(progressDialog, allTransactions);
     }
-    
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        getMenuInflater().inflate(R.menu.menu,menu);
+
+        MenuItem menuItem = menu.findItem(R.id.searchMenu);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setQueryHint("Find a product");
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+
+                transactionAdapter.getFilter().filter(newText);
+
+                return false;
+            }
+        });
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
     public void updateTransactions(ProgressDialog progressDialog){
-        Log.d(TAG, "updateTransactions: single value event listener triggered");
+
         transactionDBRef.orderByChild("timeInMillis").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -118,13 +146,13 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         }
 
         unSyncedSize = unsavedTransactions.size();
-        Log.d(TAG, "updatingUIWithTransactions: size "+unSyncedSize);
+
         transactionAdapter = new TransactionAdapter(
                 TransactionActivity.this,transactionsList, this,unSyncedSize);
 
         binding.transactionRecView.setAdapter(transactionAdapter);
         transactionAdapter.notifyDataSetChanged();
-        
+
         if(progressDialog.isShowing())
             progressDialog.dismiss();
     }
@@ -163,9 +191,9 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         builder.setMessage("Are you sure you want to delete this transaction?");
         String id = transactionsList.get(position).getTransactionId();
         TransactionModel transactionModel = transactionsList.get(position);
-        Log.d(TAG, "transactionClicked: ID: "+id);
-        Log.d(TAG, "transactionClicked: "+transactionModel.getTransactionType());
-        Log.d(TAG, "transactionClicked: "+transactionModel.getCartDetails());
+//        Log.d(TAG, "transactionClicked: ID: "+id);
+//        Log.d(TAG, "transactionClicked: "+transactionModel.getTransactionType());
+//        Log.d(TAG, "transactionClicked: "+transactionModel.getCartDetails());
 
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override

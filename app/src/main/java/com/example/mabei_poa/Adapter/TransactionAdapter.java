@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -28,10 +30,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.MyViewHolder> {
+public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.MyViewHolder> implements Filterable {
 
     private Context context;
     private ArrayList<TransactionModel> transactionModels;
+    private ArrayList<TransactionModel> filteredTransactions;
     private TransactionClickedInterface transactionClickedInterface;
     private int notSynced = 0;
     ArrayList<ProductModel> productsList = new ArrayList<>();
@@ -41,6 +44,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         this.transactionModels = transactionModels;
         this.transactionClickedInterface = transactionClickedInterface;
         this.notSynced = notSynced;
+        filteredTransactions = new ArrayList<>();
+        filteredTransactions.addAll(transactionModels);
     }
 
     @NonNull
@@ -52,7 +57,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        TransactionModel transaction = transactionModels.get(position);
+        TransactionModel transaction = filteredTransactions.get(position);
         Date date = new Date(transaction.getTimeInMillis());
 
         String time = new SimpleDateFormat("h:mm a  d/M/yyyy").format(date);
@@ -78,14 +83,13 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         Map<String, Double> cartDetails = transaction.getCartDetails();
 
         if(cartDetails != null){
-            Log.d(TAG, "onBindViewHolder: "+cartDetails.size());
-            Log.d(TAG, "onBindViewHolder: "+transaction.getNote());
-            Log.d(TAG, "onBindViewHolder: total "+transaction.getTotalAmount());
+
             for(String ids : cartDetails.keySet()){
                 ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(context).getAllProducts();
                 for(ProductModel p: allProducts){
                     if(ids.equals(p.getId())){
                         productsList.add(p);
+                        break;
                     }
                 }
             }
@@ -106,8 +110,67 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
     @Override
     public int getItemCount() {
-        return transactionModels.size();
+        return filteredTransactions.size();
     }
+
+    @Override
+    public Filter getFilter() {
+        return transactionFilter;
+    }
+
+    private final Filter transactionFilter = new Filter() {
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            ArrayList<TransactionModel> filtered = new ArrayList<>();
+
+            if(constraint == null || constraint.length() == 0){
+                filtered.addAll(transactionModels);
+            } else {
+                String searchWord = constraint.toString().toLowerCase().trim();
+
+                for(TransactionModel t: transactionModels){
+                    long last48HoursInMillis = System.currentTimeMillis() - (48*60*60*1000);
+                    //Only filtering transaction of the last 24 hours to reduce lag
+                    if(t.getTimeInMillis() >= last48HoursInMillis){
+                        Map<String, Double> cartDetails = t.getCartDetails();
+                        boolean included = false;
+
+                        if(cartDetails != null){
+                            ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(context).getAllProducts();
+                            //searching through the each product in each transaction
+                            for(String id: cartDetails.keySet()){
+                                for(ProductModel p: allProducts){
+                                    if(p.getId().equals(id)){
+                                        //searching the name of the product to see it contains the search term
+                                        if(p.getName().toLowerCase().contains(searchWord)){
+                                            filtered.add(t);
+                                            included = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if(included)    //if transaction already contains the desired product, go to the next transaction
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            FilterResults results = new FilterResults();
+            results.values = filtered;
+            results.count = filtered.size();
+
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            filteredTransactions.clear();
+            filteredTransactions.addAll((ArrayList)results.values);
+            notifyDataSetChanged();
+        }
+    };
 
     public static class MyViewHolder extends RecyclerView.ViewHolder{
 
