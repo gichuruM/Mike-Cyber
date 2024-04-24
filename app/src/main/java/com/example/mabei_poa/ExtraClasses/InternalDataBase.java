@@ -81,7 +81,7 @@ public class InternalDataBase {
     public void batchAdditionToAllProducts(ArrayList<ProductModel> manyProducts){
         SharedPreferences.Editor editor = sharedPref.edit();
         Gson gson = new Gson();
-        Log.d(TAG, "batchAdditionToAllProducts: adding many products");
+        //Log.d(TAG, "batchAdditionToAllProducts: adding many products");
         editor.remove(ALL_PRODUCTS);
         editor.putString(ALL_PRODUCTS,gson.toJson(manyProducts));
         editor.apply();

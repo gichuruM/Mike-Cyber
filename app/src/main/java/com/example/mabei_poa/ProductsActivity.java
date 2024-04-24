@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-
 import com.example.mabei_poa.Adapter.AllProductsAdapter;
 import com.example.mabei_poa.Adapter.ViewPagerAdapter;
 import com.example.mabei_poa.ExtraClasses.InternalDataBase;
