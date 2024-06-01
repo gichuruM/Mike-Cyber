@@ -7,12 +7,15 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.example.mabei_poa.Model.CartModel;
+import com.example.mabei_poa.Model.CustomerModel;
+import com.example.mabei_poa.Model.DebtTrackerSummaryModel;
 import com.example.mabei_poa.Model.NoteModel;
 import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.Model.TransactionModel;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,18 +25,20 @@ public class InternalDataBase {
 
     private static InternalDataBase instance;
     //creating a sharedPref to make SaleToCustomerActivity faster, remove loading
-    public static SharedPreferences sharedPref;
-    public static String ALL_PRODUCTS = "ALL_PRODUCTS";
-    public static String UNSAVED_NOTES = "UNSAVED_NOTES";
-    public static String SYNC_STATUS = "SYNC_STATUS";
-    public static String MONEY_TRACKING = "MONEY_TRACKING";
-    public static String FLOAT_TRACKING = "FLOAT_TRACKING";
-    public static String CART_TYPE = "CART_TYPE";
-    public static String PRODUCTS_IN_CART = "PRODUCTS_IN_CART";
-    public static String ALL_TRANSACTION = "ALL_TRANSACTIONS";
-    public static String OFFLINE_TRANSACTIONS = "OFFLINE_TRANSACTIONS";
-
-    private static ArrayList<NoteModel> unsavedNotes;
+    public SharedPreferences sharedPref;
+    public String ALL_PRODUCTS = "ALL_PRODUCTS";
+    public String UNSAVED_NOTES = "UNSAVED_NOTES";
+    public String SYNC_STATUS = "SYNC_STATUS";
+    public String MONEY_TRACKING = "MONEY_TRACKING";
+    public String FLOAT_TRACKING = "FLOAT_TRACKING";
+    public String CART_TYPE = "CART_TYPE";
+    public String PRODUCTS_IN_CART = "PRODUCTS_IN_CART";
+    public String ALL_TRANSACTION = "ALL_TRANSACTIONS";
+    public String OFFLINE_TRANSACTIONS = "OFFLINE_TRANSACTIONS";
+    public String CUSTOMER_DEBT_TRACKING = "CUSTOMER_DEBT_TRACKING";
+    public String UPDATE_CUSTOMER_DEBT_CART = "UPDATE_CUSTOMER_DEBT_CART";
+    public String OFFLINE_DEBT_UPDATES = "OFFLINE_DEBT_UPDATES";
+    public String DAY_DEBT_SUMMARY = "DAY_DEBT_SUMMARY";
 
     private InternalDataBase(Context context){
         SharedPreferences.Editor editor;
@@ -76,6 +81,22 @@ public class InternalDataBase {
             editor.putString(OFFLINE_TRANSACTIONS,gson.toJson(new ArrayList<TransactionModel>()));
             editor.apply();
         }
+        if(getAllCustomerDebts() == null){
+            editor.putString(CUSTOMER_DEBT_TRACKING,gson.toJson(new ArrayList<CustomerModel>()));
+            editor.apply();
+        }
+        if(getDebtUpdateCart() == null){
+            editor.putString(UPDATE_CUSTOMER_DEBT_CART,gson.toJson(new ArrayList<CustomerModel>()));
+            editor.apply();
+        }
+        if(getOfflineDebtUpdates() == null){
+            editor.putString(OFFLINE_DEBT_UPDATES, gson.toJson(new ArrayList<CustomerModel>()));
+            editor.apply();
+        }
+        if(getDaysDebtSummary() == null){
+            editor.putString(DAY_DEBT_SUMMARY, gson.toJson(new ArrayList<DebtTrackerSummaryModel>()));
+            editor.apply();
+        }
     }
 
     public void batchAdditionToAllProducts(ArrayList<ProductModel> manyProducts){
@@ -93,6 +114,24 @@ public class InternalDataBase {
         Log.d(TAG, "batchAdditionToAllTransactions: adding many transactions");
         editor.remove(ALL_TRANSACTION);
         editor.putString(ALL_TRANSACTION,gson.toJson(manyTransactions));
+        editor.apply();
+    }
+
+    public void batchAdditionToAllCustomerDebts(ArrayList<CustomerModel> manyCustomerDebts){
+        SharedPreferences.Editor editor = sharedPref.edit();
+        Gson gson = new Gson();
+
+        editor.remove(CUSTOMER_DEBT_TRACKING);
+        editor.putString(CUSTOMER_DEBT_TRACKING,gson.toJson(manyCustomerDebts));
+        editor.apply();
+    }
+
+    public void batchAdditionToAllDebtSummaries(ArrayList<DebtTrackerSummaryModel> manyDebtSummaries){
+        SharedPreferences.Editor editor = sharedPref.edit();
+        Gson gson = new Gson();
+
+        editor.remove(DAY_DEBT_SUMMARY);
+        editor.putString(DAY_DEBT_SUMMARY,gson.toJson(manyDebtSummaries));
         editor.apply();
     }
 
@@ -126,6 +165,65 @@ public class InternalDataBase {
             return true;
         }
         return false;
+    }
+
+    public boolean addToOfflineDebtUpdates(ArrayList<CustomerModel> customers){
+        SharedPreferences.Editor editor = sharedPref.edit();
+        Gson gson = new Gson();
+
+        ArrayList<CustomerModel> offlineDebtUpdates = getOfflineDebtUpdates();
+
+        ArrayList<CustomerModel> combinedList = new ArrayList<>();
+        for(CustomerModel oldDebts: offlineDebtUpdates){
+            boolean found = false;
+            for(CustomerModel newDebts: customers){
+                //Combining debts for the same customer that have been saved in offline mode
+                if(oldDebts.getCustomerId().equals(newDebts.getCustomerId())){
+                    found = true;
+                    CustomerModel customerCopy = new CustomerModel(oldDebts);
+                    int newCurrentDebt = 0;
+                    String newProgress = oldDebts.getDebtProgress();
+
+                    if(oldDebts.getProposedAmountType().equals("DEBT")){
+                        newCurrentDebt = oldDebts.getCurrentDebt() + oldDebts.getProposedAmount();
+                        newProgress = newProgress + " + " + oldDebts.getProposedAmount();
+                    } else if(oldDebts.getProposedAmountType().equals("DEBT_PAYMENT")){
+                        newCurrentDebt = oldDebts.getCurrentDebt() - oldDebts.getProposedAmount();
+                        newProgress = newProgress + " - " + oldDebts.getProposedAmount();
+                    }
+
+                    if(newCurrentDebt == 0)
+                        newProgress = "";
+
+                    customerCopy.setCurrentDebt(newCurrentDebt);
+                    customerCopy.setDebtProgress(newProgress);
+                    customerCopy.setProposedAmount(newDebts.getProposedAmount());
+                    customerCopy.setProposedAmountType(newDebts.getProposedAmountType());
+                    combinedList.add(customerCopy);
+                    break;
+                }
+            }
+            if(!found)  //This add all the customers that are in oldDebts but not in newDebts
+                combinedList.add(oldDebts);
+        }
+        //Adding all the customers that are in newDebts and not in oldDebts
+        for(CustomerModel c: customers){
+            boolean found = false;
+            for(CustomerModel d: combinedList){
+                if(c.getCustomerId().equals(d.getCustomerId())){
+                    found = true;
+                    break;
+                }
+            }
+            if(!found)
+                combinedList.add(c);
+        }
+
+        Log.d(TAG, "addToOfflineDebtUpdates: new size "+offlineDebtUpdates.size());
+        editor.remove(OFFLINE_DEBT_UPDATES);
+        editor.putString(OFFLINE_DEBT_UPDATES,gson.toJson(combinedList));
+        editor.apply();
+        return true;
     }
 
     public boolean editProduct(String id, Double quantity){
@@ -248,6 +346,27 @@ public class InternalDataBase {
         return false;
     }
 
+    public boolean removeFromUnsavedUpdateDebts(CustomerModel customerUpdate){
+        SharedPreferences.Editor editor = sharedPref.edit();
+        Gson gson = new Gson();
+
+        ArrayList<CustomerModel> customerDebtUpdates = getOfflineDebtUpdates();
+
+        for(CustomerModel c: customerDebtUpdates){
+            if(c.getCustomerId().equals(customerUpdate.getCustomerId())){
+                if(customerDebtUpdates.remove(c)){
+                    editor.remove(OFFLINE_DEBT_UPDATES);
+                    editor.putString(OFFLINE_DEBT_UPDATES,gson.toJson(customerDebtUpdates));
+                    editor.apply();
+                    Log.d(TAG, "removeFromUnsavedDebtUpdates: successfully removed from unsaved debt updates");
+                    return  true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public void clearAllUnsavedNotes(){
         SharedPreferences.Editor editor = sharedPref.edit();
         Gson gson = new Gson();
@@ -301,6 +420,15 @@ public class InternalDataBase {
         editor.apply();
     }
 
+    public void setNewUpdateDebt(ArrayList<CustomerModel> newDebtUpdate){
+        SharedPreferences.Editor editor = sharedPref.edit();
+        Gson gson = new Gson();
+
+        editor.remove(UPDATE_CUSTOMER_DEBT_CART);
+        editor.putString(UPDATE_CUSTOMER_DEBT_CART,gson.toJson(newDebtUpdate));
+        editor.apply();
+    }
+
     public boolean getSyncStatus(){
         return(sharedPref.getBoolean(SYNC_STATUS,false));
     }
@@ -331,12 +459,44 @@ public class InternalDataBase {
 
         return gson.fromJson(json,type);
     }
-    
+
+    public ArrayList<CustomerModel> getDebtUpdateCart(){
+        Type type = new TypeToken<ArrayList<CustomerModel>>(){}.getType();
+        String json = sharedPref.getString(UPDATE_CUSTOMER_DEBT_CART,"null");
+        Gson gson = new Gson();
+
+        return gson.fromJson(json,type);
+    }
+
+    public ArrayList<CustomerModel> getAllCustomerDebts(){
+        Type type = new TypeToken<ArrayList<CustomerModel>>(){}.getType();
+        String json = sharedPref.getString(CUSTOMER_DEBT_TRACKING,"null");
+        Gson gson = new Gson();
+
+        return gson.fromJson(json,type);
+    }
+
     public ArrayList<TransactionModel> getAllTransactions(){
         Type type = new TypeToken<ArrayList<TransactionModel>>(){}.getType();
         String json = sharedPref.getString(ALL_TRANSACTION,"null");
         Gson gson = new Gson();
         
+        return gson.fromJson(json,type);
+    }
+
+    public ArrayList<CustomerModel> getOfflineDebtUpdates(){
+        Type type = new TypeToken<ArrayList<CustomerModel>>(){}.getType();
+        String json = sharedPref.getString(OFFLINE_DEBT_UPDATES,"null");
+        Gson gson = new Gson();
+
+        return gson.fromJson(json,type);
+    }
+
+    public ArrayList<DebtTrackerSummaryModel> getDaysDebtSummary(){
+        Type type = new TypeToken<ArrayList<DebtTrackerSummaryModel>>(){}.getType();
+        String json = sharedPref.getString(DAY_DEBT_SUMMARY,"null");
+        Gson gson = new Gson();
+
         return gson.fromJson(json,type);
     }
 

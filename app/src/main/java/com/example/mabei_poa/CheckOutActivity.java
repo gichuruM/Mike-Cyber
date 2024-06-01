@@ -1,9 +1,12 @@
 package com.example.mabei_poa;
 
 import static com.example.mabei_poa.HomeActivity.checkConnection;
+import static com.example.mabei_poa.HomeActivity.customerDebtDBRef;
+import static com.example.mabei_poa.HomeActivity.dayDebtTrackerDBRef;
 import static com.example.mabei_poa.HomeActivity.transactionDBRef;
 import static com.example.mabei_poa.ProductsActivity.TAG;
 import static com.example.mabei_poa.SaleToCustomerActivity.cartProductsList;
+import static com.example.mabei_poa.SaleToCustomerActivity.editedCustomers;
 import static com.example.mabei_poa.SaleToCustomerActivity.totalAmount;
 
 import androidx.annotation.NonNull;
@@ -23,6 +26,8 @@ import android.widget.Toast;
 import com.example.mabei_poa.ExtraClasses.ChangingQuantityRunnable;
 import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.Model.CartModel;
+import com.example.mabei_poa.Model.CustomerModel;
+import com.example.mabei_poa.Model.DebtTrackerSummaryModel;
 import com.example.mabei_poa.Model.NoteModel;
 import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.Model.TransactionModel;
@@ -108,12 +113,8 @@ public class CheckOutActivity extends AppCompatActivity {
 
                 if(payment.equals("None"))
                     Toast.makeText(CheckOutActivity.this, "Select method of payment to proceed", Toast.LENGTH_SHORT).show();
-                else if(totalAmount == 0)
-                    Toast.makeText(CheckOutActivity.this, "No items in cart", Toast.LENGTH_SHORT).show();
                 else if(binding.receivedAmount.getText().toString().equals(""))
                     Toast.makeText(CheckOutActivity.this, "Received amount is empty", Toast.LENGTH_SHORT).show();
-                else if(cartProductsList.size() <= 0)
-                    Toast.makeText(CheckOutActivity.this, "There are 0 products in the cart", Toast.LENGTH_SHORT).show();
                 else {  //Getting details of the transaction
                     Long timeInMillis = new Date().getTime();
                     double receivedAmount = Double.parseDouble(binding.receivedAmount.getText().toString());
@@ -209,6 +210,78 @@ public class CheckOutActivity extends AppCompatActivity {
                     if(internetConnection)
                         changeQty(CheckOutActivity.this, transaction);
 
+                    //Saving New debts, if any
+                    if(editedCustomers.size() > 0 && internetConnection){
+                        for(CustomerModel c: editedCustomers){
+                            DatabaseReference customerRef = customerDebtDBRef.child(c.getCustomerId());
+
+                            int newCurrentAmount  = c.getCurrentDebt();
+                            String newDebtProgress = c.getDebtProgress();
+                            Date newEditDate = new Date();
+
+                            if(c.getProposedAmountType().equals("DEBT")){
+                                newCurrentAmount = newCurrentAmount + c.getProposedAmount();
+                                if(!newDebtProgress.equals(""))
+                                    newDebtProgress = newDebtProgress + " + ";
+                            } else if(c.getProposedAmountType().equals("DEBT_PAYMENT")){
+                                newCurrentAmount = newCurrentAmount - c.getProposedAmount();
+                                if(!newDebtProgress.equals(""))
+                                    newDebtProgress = newDebtProgress + " - ";
+                            }
+                            newDebtProgress = newDebtProgress + c.getProposedAmount();
+
+                            //Customer has cleared their debt
+                            if(newCurrentAmount == 0){
+                                newDebtProgress = "";
+                                customerRef.child("initialDate").setValue(newEditDate);
+                            } else if(c.getCurrentDebt() == 0){ //Initial debt
+                                customerRef.child("initialDate").setValue(newEditDate);
+                            }
+
+                            String finalNewDebtProgress = newDebtProgress;
+                            customerRef.child("currentDebt").setValue(newCurrentAmount)
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void unused) {
+                                                    customerRef.child("debtProgress").setValue(finalNewDebtProgress)
+                                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                @Override
+                                                                public void onSuccess(Void unused) {
+                                                                    customerRef.child("editDate").setValue(newEditDate);
+                                                                    Log.d(TAG, "onSuccess: New debt updated successfully");
+                                                                }
+                                                            });
+                                                }
+                                            });
+
+                            //Creating and saving debt calculations for money tracking
+                            String debtId = UUID.randomUUID().toString();
+                            DebtTrackerSummaryModel debtSummary = new DebtTrackerSummaryModel(
+                                    c.getCustomerId(),
+                                    c.getCustomerName(),
+                                    new Date(),
+                                    c.getProposedAmountType(),
+                                    c.getProposedAmount()
+                            );
+
+                            dayDebtTrackerDBRef.child(debtId).setValue(debtSummary)
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void unused) {
+                                                    Log.d(TAG, "onSuccess: New debt tracker saved");
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    Log.d(TAG, "onFailure: New debt tracker saving failed "+e.getMessage());
+                                                }
+                                            });
+                        }
+                        editedCustomers.clear();
+                        InternalDataBase.getInstance(CheckOutActivity.this).setNewUpdateDebt(new ArrayList<>());
+                    }
+
                     //Saving the transaction
                     new Thread(new Runnable() {
                         @Override
@@ -262,12 +335,20 @@ public class CheckOutActivity extends AppCompatActivity {
                                         });
                             } else {
                                 if(InternalDataBase.getInstance(CheckOutActivity.this).addToOfflineTransactions(transaction)){
+                                    String message = "Transaction saved in offline mode";
+                                    if(editedCustomers.size() > 0){
+                                        InternalDataBase.getInstance(CheckOutActivity.this).addToOfflineDebtUpdates(editedCustomers);
+                                        message = "Transaction & customers saved in offline mode";
+                                        editedCustomers.clear();
+                                    }
                                     InternalDataBase.getInstance(CheckOutActivity.this).setSyncStatus(true);
                                     Log.d(TAG, "saveTransaction: offline transaction saved");
+
+                                    String finalMessage = message;
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(CheckOutActivity.this, "Transaction saved in offline mode", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(CheckOutActivity.this, finalMessage, Toast.LENGTH_SHORT).show();
                                         }
                                     });
                                 }

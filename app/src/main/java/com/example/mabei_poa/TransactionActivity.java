@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -40,6 +41,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -187,9 +189,15 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
     public void transactionClicked(int position) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        TransactionModel transaction = transactionsList.get(position);
+        String id = transaction.getTransactionId();
+        String transactionType = transaction.getTransactionType();
+        String transactionAmount = String.valueOf(transaction.getTotalAmount());
+        Date transactionDate = new Date(transaction.getTimeInMillis());
+
         builder.setTitle("Alert");
-        builder.setMessage("Are you sure you want to delete this transaction?");
-        String id = transactionsList.get(position).getTransactionId();
+        builder.setMessage("Delete "+transactionType+" transaction of amount "+transactionAmount+" at "+transactionDate+" ?");
+
         TransactionModel transactionModel = transactionsList.get(position);
 //        Log.d(TAG, "transactionClicked: ID: "+id);
 //        Log.d(TAG, "transactionClicked: "+transactionModel.getTransactionType());
@@ -212,6 +220,7 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
                                 @Override
                                 public void onSuccess(Void unused) {
                                     Toast.makeText(TransactionActivity.this, "Transaction deleted", Toast.LENGTH_SHORT).show();
+                                    startActivity(new Intent(TransactionActivity.this, HomeActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                                 }
                             })
                             .addOnFailureListener(new OnFailureListener() {

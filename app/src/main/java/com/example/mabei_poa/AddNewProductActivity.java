@@ -212,42 +212,34 @@ public class AddNewProductActivity extends AppCompatActivity {
                         if(barcodeChanged){
                             Toast.makeText(AddNewProductActivity.this, "Barcode has changed", Toast.LENGTH_SHORT).show();
                             docRef.child("barcodes").setValue(barcodes);
-//                            documentReference.update("barcodes",barcodes);
                         }
                         if(existingProduct.getLowStockAlert() != Double.parseDouble(lowAlert)){
                             Toast.makeText(AddNewProductActivity.this, "Low Alert Qty has changed", Toast.LENGTH_SHORT).show();
                             docRef.child("lowStockAlert").setValue(Double.parseDouble(lowAlert));
-//                            documentReference.update("lowStockAlert",Double.parseDouble(lowAlert));
                         }
                         if(!existingProduct.getName().equals(name)){
                             Toast.makeText(AddNewProductActivity.this, "Name has changed", Toast.LENGTH_SHORT).show();
                             docRef.child("name").setValue(name);
-//                            documentReference.update("name",name);
                         }
                         if(existingProduct.getPurchasePrice() != Double.parseDouble(purchasePrice)){
                             Toast.makeText(AddNewProductActivity.this, "Purchase price has changed", Toast.LENGTH_SHORT).show();
                             docRef.child("purchasePrice").setValue(Double.valueOf(purchasePrice));
-//                            documentReference.update("purchasePrice",Double.valueOf(purchasePrice));
                         }
                         if(existingProduct.getSellingPrice() != Double.parseDouble(sellingPrice)){
                             Toast.makeText(AddNewProductActivity.this, "Selling price has changed", Toast.LENGTH_SHORT).show();
                             docRef.child("sellingPrice").setValue(Double.valueOf(sellingPrice));
-//                            documentReference.update("sellingPrice",Double.valueOf(sellingPrice));
                         }
                         if(existingProduct.getQuantity() != Double.parseDouble(quantity)){
                             Toast.makeText(AddNewProductActivity.this, "Quantity has changed", Toast.LENGTH_SHORT).show();
                             docRef.child("quantity").setValue(Double.valueOf(quantity));
-//                            documentReference.update("quantity",Double.valueOf(quantity));
                         }
                         if(!existingProduct.getCategory().equals(categoryPicked)){
                             Toast.makeText(AddNewProductActivity.this, "Category picked has changed", Toast.LENGTH_SHORT).show();
                             docRef.child("category").setValue(categoryPicked);
-//                            documentReference.update("category",categoryPicked);
                         }
                         if(!existingProduct.getUnits().equals(unitsPicked)){
                             Toast.makeText(AddNewProductActivity.this, "Units has changed", Toast.LENGTH_SHORT).show();
                             docRef.child("units").setValue(unitsPicked);
-//                            documentReference.update("units",unitsPicked);
                         }
                         if(imageUri != null){
                             Toast.makeText(AddNewProductActivity.this, "Pic has changed", Toast.LENGTH_SHORT).show();
@@ -261,7 +253,6 @@ public class AddNewProductActivity extends AppCompatActivity {
                                                 public void onSuccess(Uri uri) {
                                                     String newUri = uri.toString();
                                                     docRef.child("image").setValue(newUri);
-//                                                    documentReference.update("image",newUri);
                                                 }
                                             });
                                         }
@@ -416,31 +407,6 @@ public class AddNewProductActivity extends AppCompatActivity {
                                     @Override
                                     public void onSuccess(Uri uri) {
                                         product.setImage(uri.toString());
-
-//                                        FirebaseFirestore.getInstance()
-//                                                .collection("products")
-//                                                .document(product.getId())
-//                                                .set(product)
-//                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-//                                                    @Override
-//                                                    public void onSuccess(Void unused) {
-//                                                        if(progressDialog.isShowing())
-//                                                            progressDialog.dismiss();
-//
-//                                                        Toast.makeText(AddNewProductActivity.this, "Product saved successfully", Toast.LENGTH_SHORT).show();
-//                                                        startActivity(new Intent(AddNewProductActivity.this,ProductsActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-//                                                        InternalDataBase.getInstance(AddNewProductActivity.this).addToAllProducts(product);
-//                                                    }
-//                                                })
-//                                                .addOnFailureListener(new OnFailureListener() {
-//                                                    @Override
-//                                                    public void onFailure(@NonNull Exception e) {
-//                                                        if(progressDialog.isShowing())
-//                                                            progressDialog.dismiss();
-//
-//                                                        Toast.makeText(AddNewProductActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-//                                                    }
-//                                                });
 
                                         productDBRef
                                                 .child(product.getId())

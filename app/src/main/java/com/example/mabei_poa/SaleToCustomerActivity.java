@@ -2,30 +2,40 @@ package com.example.mabei_poa;
 
 import static com.example.mabei_poa.Adapter.AllProductsAdapter.fullProductModelArrayList;
 import static com.example.mabei_poa.Adapter.CartAdapter.scanFirstDigit;
+import static com.example.mabei_poa.Fragment.ProductsCartFragment.cartRecView;
 import static com.example.mabei_poa.ProductsActivity.TAG;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import androidx.appcompat.widget.SearchView;
+import androidx.viewpager2.widget.ViewPager2;
+
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mabei_poa.Adapter.CartAdapter;
+import com.example.mabei_poa.Adapter.SalePageViewAdapter;
+import com.example.mabei_poa.Adapter.UpdateCustomerDebtAdapter;
 import com.example.mabei_poa.ExtraClasses.InternalDataBase;
 import com.example.mabei_poa.Interface.CartItemClickedInterface;
 import com.example.mabei_poa.Model.CartModel;
+import com.example.mabei_poa.Model.CustomerModel;
 import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.databinding.ActivitySaleToCustomerBinding;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -36,22 +46,20 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-
-import io.grpc.Internal;
 
 public class SaleToCustomerActivity extends AppCompatActivity implements CartItemClickedInterface{
 
     static ActivitySaleToCustomerBinding binding;
     public static CartAdapter cartAdapter;
     public static ArrayList<CartModel> cartProductsList = new ArrayList<>();
+    public static ArrayList<CustomerModel> editedCustomers = new ArrayList<>();
     static double totalAmount = 0;
+    SalePageViewAdapter salePageViewAdapter;
+    public static UpdateCustomerDebtAdapter updateCustomerDebtAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,15 +67,22 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
         binding = ActivitySaleToCustomerBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        getSupportActionBar().hide();
-
-        String dateTime = new SimpleDateFormat("dd/MM/yyyy hh:mma", Locale.getDefault()).format(new Date());
-        binding.cartDateTime.setText(dateTime);
-
-        binding.cartRecView.setLayoutManager(new LinearLayoutManager(this));
+        //Initializing the adapter for both recycler views
         cartAdapter = new CartAdapter(this, this, binding.barcodeScanResults);
-        binding.cartRecView.setHasFixedSize(true);
-        binding.cartRecView.setAdapter(cartAdapter);
+        updateCustomerDebtAdapter = new UpdateCustomerDebtAdapter(this, binding.barcodeScanResults);
+
+        salePageViewAdapter = new SalePageViewAdapter(this);
+        binding.saleActivityViewPager.setAdapter(salePageViewAdapter);
+
+        binding.saleActivityViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                if(position == 0){
+                    binding.barcodeScanResults.requestFocus();
+                }
+            }
+        });
 
         binding.addProductToCart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -102,7 +117,6 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
             }
 
             @Override
@@ -110,11 +124,11 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                 if(s.toString().equals("")) return;
 
                 String scanResult = s.toString().trim();
-                Log.d(TAG, "afterTextChanged: *----------*");
-                Log.d(TAG, "afterTextChanged: scanResult "+scanResult);
-                Log.d(TAG, "afterTextChanged: previous "+previousString);
+//                Log.d(TAG, "afterTextChanged: *----------*");
+//                Log.d(TAG, "afterTextChanged: scanResult "+scanResult);
+//                Log.d(TAG, "afterTextChanged: previous "+previousString);
                 if(scanResult.equals(previousString)){
-                    Log.d(TAG, "afterTextChanged: passed");
+//                    Log.d(TAG, "afterTextChanged: passed");
                     if(!Objects.equals(scanFirstDigit, "")){
                         String newPreviousString = scanFirstDigit+previousString;                                                                                                                                                                 
                         scanFirstDigit = "";
@@ -127,6 +141,33 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                 previousString = scanResult;
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        getMenuInflater().inflate(R.menu.cart_search_menu,menu);
+
+        MenuItem menuItem = menu.findItem(R.id.cartSearchMenu);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setQueryHint("Find a customer");
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+
+                updateCustomerDebtAdapter.getFilter().filter(newText);
+
+                return false;
+            }
+        });
+
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -164,11 +205,13 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
             cartProductsList = InternalDataBase.getInstance(this).getCart();
             cartAdapter.notifyDataSetChanged();
         }
+        if(InternalDataBase.getInstance(this).getDebtUpdateCart().size() != editedCustomers.size()){
+            editedCustomers = InternalDataBase.getInstance(this).getDebtUpdateCart();
+            updateCustomerDebtAdapter.notifyDataSetChanged();
+        }
     }
 
     public static void totalCartAmount(){
-        TextView totalCartAmount;
-
         totalAmount = 0;
         for(CartModel c: cartProductsList){
             totalAmount += c.getProductTotal();
@@ -291,7 +334,7 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                             CartModel cartModel = new CartModel(p.getId(),quantity,p.getSellingPrice()*quantity);
                             cartProductsList.add(pos, cartModel);
                             cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
-                            binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
+                            cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
                             inCart = true;
                         }
 
@@ -299,7 +342,7 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                             CartModel cartModel = new CartModel(p.getId(),productBarcodes.get(key),p.getSellingPrice());
                             cartProductsList.add(cartModel);
                             cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
-                            binding.cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
+                            cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
                         }
                         InternalDataBase.getInstance(this).setNewCart(cartProductsList);
                     } else {
@@ -358,4 +401,3 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
         }
     }
 }
-//TODO: where products would have been lost, quantities coming back aren't the ones set initially

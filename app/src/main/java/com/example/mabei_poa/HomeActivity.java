@@ -1,7 +1,9 @@
 package com.example.mabei_poa;
 
+import static com.example.mabei_poa.Adapter.UpdateCustomerDebtAdapter.customerList;
 import static com.example.mabei_poa.ProductsActivity.TAG;
 import static com.example.mabei_poa.SaleToCustomerActivity.cartProductsList;
+import static com.example.mabei_poa.SaleToCustomerActivity.editedCustomers;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,9 +26,12 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.example.mabei_poa.ExtraClasses.InternalDataBase;
+import com.example.mabei_poa.ExtraClasses.SyncDebtUpdates;
 import com.example.mabei_poa.ExtraClasses.SyncNotesRunnable;
 import com.example.mabei_poa.ExtraClasses.SyncTransactionRunnable;
 import com.example.mabei_poa.Fragment.AllProductsFragment;
+import com.example.mabei_poa.Model.CustomerModel;
+import com.example.mabei_poa.Model.DebtTrackerSummaryModel;
 import com.example.mabei_poa.Model.NoteModel;
 import com.example.mabei_poa.Model.ProductModel;
 import com.example.mabei_poa.Model.TransactionModel;
@@ -39,6 +44,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.net.InterfaceAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
@@ -57,6 +63,10 @@ public class HomeActivity extends AppCompatActivity{
     static public ValueEventListener transactionEventListener;
     static public DatabaseReference productDBRef = FirebaseDatabase.getInstance().getReference("products");
     static public ValueEventListener productEventListener;
+    static public DatabaseReference customerDebtDBRef = FirebaseDatabase.getInstance().getReference("customersDebt");
+    static public ValueEventListener customerDebtEventListener;
+    static public DatabaseReference dayDebtTrackerDBRef = FirebaseDatabase.getInstance().getReference("dayDebtTracker");
+    static public ValueEventListener dayDebtTrackerListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +80,16 @@ public class HomeActivity extends AppCompatActivity{
 
         //Resetting the cartType to noType
         InternalDataBase.getInstance(HomeActivity.this).setCartType("noType");
+
+        ArrayList<CustomerModel> unsavedCustomer = InternalDataBase.getInstance(HomeActivity.this).getOfflineDebtUpdates();
+        Log.d(TAG, "onCreate: *----------------------*");
+        for(CustomerModel c: unsavedCustomer){
+            Log.d(TAG, "onCreate: "+c.getCustomerName());
+            Log.d(TAG, "onCreate: "+c.getCurrentDebt());
+            Log.d(TAG, "onCreate: progress "+c.getDebtProgress());
+            Log.d(TAG, "onCreate: proposedAmount "+c.getProposedAmount());
+            Log.d(TAG, "onCreate: proposedType "+c.getProposedAmountType());
+        }
 
         binding.products.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -120,6 +140,13 @@ public class HomeActivity extends AppCompatActivity{
             }
         });
 
+        binding.customers.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(HomeActivity.this, Customers.class));
+            }
+        });
+
         binding.syncUnsavedData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -134,6 +161,8 @@ public class HomeActivity extends AppCompatActivity{
                         SyncNotes();
                     if(InternalDataBase.getInstance(HomeActivity.this).getOfflineTransactions().size() > 0)
                         SyncTransactions();
+                    if(InternalDataBase.getInstance(HomeActivity.this).getOfflineDebtUpdates().size() > 0)
+                        SyncDebtUpdates();
                 } else
                     Toast.makeText(HomeActivity.this, "No internet connection", Toast.LENGTH_SHORT).show();
             }
@@ -143,85 +172,188 @@ public class HomeActivity extends AppCompatActivity{
 
         ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(this).getAllProducts();
         ArrayList<TransactionModel> allTransactions = InternalDataBase.getInstance(this).getAllTransactions();
+        ArrayList<CustomerModel> allCustomerDebt = InternalDataBase.getInstance(this).getAllCustomerDebts();
+        ArrayList<DebtTrackerSummaryModel> allDayDebtSummary = InternalDataBase.getInstance(this).getDaysDebtSummary();
 
 //        Initializing product event listener if it isn't initialized yet
-        Log.d(TAG, "onCreate: producteventListener"+productEventListener);
         if(allProducts.isEmpty() || productEventListener == null){
-            new Thread(() -> {
-                Log.d(TAG, "onCreate: happening");
-                //Ensuring there isn't more than one eventListener on the dataRef
-                if(productEventListener != null){
-                    productDBRef.removeEventListener(productEventListener);
-                    productEventListener = null;
-                    Log.d(TAG, "onCreate: also happening");
-                }
+            //Ensuring there isn't more than one eventListener on the dataRef
+            if(productEventListener != null){
+                productDBRef.removeEventListener(productEventListener);
+                productEventListener = null;
+                //Log.d(TAG, "onCreate: also happening");
+            }
 
-                productEventListener = new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        ArrayList<ProductModel> finalAllProductsList = new ArrayList<>();
-//                          Log.d(TAG, "onDataChange: valueEventListener triggered");
-                        for(DataSnapshot snap: snapshot.getChildren()){
-                            ProductModel product = snap.getValue(ProductModel.class);
+            productEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ArrayList<ProductModel> finalAllProductsList = new ArrayList<>();
 
-                            if(product != null)
-                                finalAllProductsList.add(product);
+                            for(DataSnapshot snap: snapshot.getChildren()){
+                                ProductModel product = snap.getValue(ProductModel.class);
+
+                                if(product != null)
+                                    finalAllProductsList.add(product);
+                            }
+                            Log.d(TAG, "onDataChange: products initialized for the 1st time, products updated");
+                            InternalDataBase.getInstance(HomeActivity.this).batchAdditionToAllProducts(finalAllProductsList);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(HomeActivity.this, "Products updated!", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         }
-                        Log.d(TAG, "onDataChange: products initialized for the 1st time, products updated");
-                        InternalDataBase.getInstance(HomeActivity.this).batchAdditionToAllProducts(finalAllProductsList);
-                        Toast.makeText(HomeActivity.this, "Products updated!", Toast.LENGTH_SHORT).show();
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(HomeActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                };
+                    }).start();
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(HomeActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            };
 
-                productDBRef.addValueEventListener(productEventListener);
-            }).start();
+            productDBRef.addValueEventListener(productEventListener);
         }
 
         //Initializing transaction event listener if it isn't initialized yet
-        Log.d(TAG, "onCreate: transactionEventListener"+transactionEventListener);
         if(allTransactions.isEmpty() || transactionEventListener == null) {
-            new Thread(() -> {
-                Log.d(TAG, "onCreate: happening");
-                //Ensuring theres just one event listener in the database
-                if(transactionEventListener != null){
-                    transactionDBRef.removeEventListener(transactionEventListener);
-                    transactionEventListener = null;
-                    Log.d(TAG, "onCreate: also happening");
+            //Ensuring theres just one event listener in the database
+            if(transactionEventListener != null){
+                transactionDBRef.removeEventListener(transactionEventListener);
+                transactionEventListener = null;
+                Log.d(TAG, "onCreate: also happening");
+            }
+
+            transactionEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ArrayList<TransactionModel> allTransactions = new ArrayList<>();
+
+                            for(DataSnapshot snap: snapshot.getChildren()){
+                                TransactionModel transaction = snap.getValue(TransactionModel.class);
+
+                                if(transaction != null)
+                                    allTransactions.add(transaction);
+                            }
+                            Collections.reverse(allTransactions);
+                            Log.d(TAG, "onDataChange: Transactions product size "+allTransactions.size()+" transaction updated");
+                            InternalDataBase.getInstance(HomeActivity.this).batchAdditionToAllTransactions(allTransactions);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(HomeActivity.this, "Transactions updated!", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    }).start();
                 }
 
-                transactionEventListener = new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        ArrayList<TransactionModel> allTransactions = new ArrayList<>();
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.d(TAG, "onCancelled: Error while retrieving transactions "+error.getMessage());
+                }
+            };
 
-                        for(DataSnapshot snap: snapshot.getChildren()){
-                            TransactionModel transaction = snap.getValue(TransactionModel.class);
+            transactionDBRef.orderByChild("timeInMillis").addValueEventListener(transactionEventListener);
+        }
 
-                            if(transaction != null)
-                                allTransactions.add(transaction);
+        //Initializing customer debt event listener if it isn't initialized yet
+        if(allCustomerDebt.isEmpty() || customerDebtEventListener == null) {
+            //Ensuring theres just one event listener in the database
+            if(customerDebtEventListener != null){
+                customerDebtDBRef.removeEventListener(customerDebtEventListener);
+                customerDebtEventListener = null;
+                //Log.d(TAG, "onCreate: also happening");
+            }
+
+            customerDebtEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ArrayList<CustomerModel> allCustomerDebt = new ArrayList<>();
+
+                            for(DataSnapshot snap: snapshot.getChildren()){
+                                CustomerModel customerDebt = snap.getValue(CustomerModel.class);
+
+                                if(customerDebt != null)
+                                    allCustomerDebt.add(customerDebt);
+                            }
+                            Log.d(TAG, "run: All customer details updated");
+                            InternalDataBase.getInstance(HomeActivity.this).batchAdditionToAllCustomerDebts(allCustomerDebt);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(HomeActivity.this, "Customers updated!", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         }
-                        Collections.reverse(allTransactions);
-                        Log.d(TAG, "onDataChange: Transactions product size "+allTransactions.size()+" transaction updated");
-                        InternalDataBase.getInstance(HomeActivity.this).batchAdditionToAllTransactions(allTransactions);
-                        Toast.makeText(HomeActivity.this, "Transactions updated!", Toast.LENGTH_SHORT).show();
-                    }
+                    }).start();
+                }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Log.d(TAG, "onCancelled: Error while retrieving transactions "+error.getMessage());
-                    }
-                };
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.d(TAG, "onCancelled: Error while retrieving transactions "+error.getMessage());
+                }
+            };
 
-                transactionDBRef.orderByChild("timeInMillis").addValueEventListener(transactionEventListener);
-            }).start();
+            customerDebtDBRef.addValueEventListener(customerDebtEventListener);
+        }
+
+        //Initializing customer debt event listener if it isn't initialized yet
+        if(allDayDebtSummary.isEmpty() || dayDebtTrackerListener == null) {
+            //Ensuring theres just one event listener in the database
+            if(dayDebtTrackerListener != null){
+                dayDebtTrackerDBRef.removeEventListener(dayDebtTrackerListener);
+                dayDebtTrackerListener = null;
+                //Log.d(TAG, "onCreate: also happening");
+            }
+
+            dayDebtTrackerListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ArrayList<DebtTrackerSummaryModel> daysDebtSummary = new ArrayList<>();
+
+                            for(DataSnapshot snap: snapshot.getChildren()){
+                                DebtTrackerSummaryModel debtSummary = snap.getValue(DebtTrackerSummaryModel.class);
+
+                                if(debtSummary != null)
+                                    daysDebtSummary.add(debtSummary);
+                            }
+                            Log.d(TAG, "run: All Day debts details updated");
+                            InternalDataBase.getInstance(HomeActivity.this).batchAdditionToAllDebtSummaries(daysDebtSummary);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(HomeActivity.this, "Debts summary updated!", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    }).start();
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.d(TAG, "onCancelled: Error while retrieving Debt Summary "+error.getMessage());
+                }
+            };
+
+            dayDebtTrackerDBRef.addValueEventListener(dayDebtTrackerListener);
         }
 
         Log.d(TAG, "onCreate: transactionEventListener"+transactionEventListener);
         Log.d(TAG, "onCreate: productEventListener"+productEventListener);
+        Log.d(TAG, "onCreate: customerDebtEventListener"+customerDebtEventListener);
     }
 
     private void SyncNotes() {
@@ -242,6 +374,15 @@ public class HomeActivity extends AppCompatActivity{
         for(TransactionModel t: unsavedTransactions){
             SyncTransactionRunnable transactionSync = new SyncTransactionRunnable(HomeActivity.this,t, binding.syncUnsavedData);
             threadHandler.post(transactionSync);
+        }
+    }
+
+    private void SyncDebtUpdates(){
+        ArrayList<CustomerModel> unsavedCustomerDebts = InternalDataBase.getInstance(HomeActivity.this).getOfflineDebtUpdates();
+
+        for(CustomerModel c: unsavedCustomerDebts){
+            SyncDebtUpdates debtUpdateSync = new SyncDebtUpdates(HomeActivity.this, c,binding.syncUnsavedData);
+            threadHandler.post(debtUpdateSync);
         }
     }
 
@@ -330,6 +471,12 @@ public class HomeActivity extends AppCompatActivity{
         //clearing the cart if it has any items
         cartProductsList.clear();
         InternalDataBase.getInstance(this).setNewCart(cartProductsList);
+        //Clearing customers on update if any
+        editedCustomers.clear();
+        InternalDataBase.getInstance(this).setNewUpdateDebt(new ArrayList<CustomerModel>());
+
+        SaleToCustomerActivity.totalAmount = 0;
+
         if(InternalDataBase.getInstance(HomeActivity.this).getSyncStatus())
             binding.syncUnsavedData.setVisibility(View.VISIBLE);
         else
