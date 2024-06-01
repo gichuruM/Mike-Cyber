@@ -135,8 +135,6 @@ public class AllProductsAdapter extends RecyclerView.Adapter<AllProductsAdapter.
 
                     boolean restricted = false;
 
-                    Log.d(TAG, "onClick: Name: "+productModel.getName()+" : "+productModel.getId());
-
                     //Allowed Products: Brown bread BB, Bread BB, Bread half BB, Bread Tpremium, Bread Tosha, stars
                     //Cakes za 5, Cakes, Airtel airtime, Safaricom airtime, njugu, crips, Elliots, Fine bread
                     //festive, festive brown, straight

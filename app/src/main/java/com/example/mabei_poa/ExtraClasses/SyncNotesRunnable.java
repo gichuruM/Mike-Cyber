@@ -38,7 +38,8 @@ public class SyncNotesRunnable implements Runnable {
                     public void onSuccess(Void unused) {
                         InternalDataBase.getInstance(context).removeFromUnsavedNotes(note);
                         if(InternalDataBase.getInstance(context).getUnsavedNotes().size() == 0 &&
-                                InternalDataBase.getInstance(context).getOfflineTransactions().size() == 0){
+                                InternalDataBase.getInstance(context).getOfflineTransactions().size() == 0 &&
+                                InternalDataBase.getInstance(context).getOfflineDebtUpdates().size() == 0){
 
                             InternalDataBase.getInstance(context).setSyncStatus(false);
                             view.clearAnimation();

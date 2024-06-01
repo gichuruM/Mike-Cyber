@@ -5,34 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".SaleToCustomerActivity"
-    android:padding="10dp">
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/layoutDateTime">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Date and Time"
-            android:textSize="20sp"
-            android:id="@+id/cartDateTime"/>
-
-        <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:src="@drawable/ic_baseline_edit_calendar_24"
-            android:layout_alignParentRight="true"/>
-
-    </RelativeLayout>
+    android:padding="7dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:orientation="horizontal"
-        android:layout_marginTop="10dp"
-        android:layout_below="@+id/layoutDateTime"
+        android:layout_marginTop="5dp"
         android:id="@+id/layoutAddToCart"
         android:weightSum="3">
 
@@ -76,15 +55,14 @@
 
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
+    <androidx.viewpager2.widget.ViewPager2
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/layoutAddToCart"
         android:layout_above="@+id/layoutTotalCheckout"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
-        android:id="@+id/cartRecView"
-        tools:listitem="@layout/one_cart_item_layout"/>
+        android:id="@+id/saleActivityViewPager"/>
 
     <RelativeLayout
         android:layout_width="match_parent"

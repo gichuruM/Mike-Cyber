@@ -38,7 +38,8 @@ public class SyncTransactionRunnable implements Runnable{
                     @Override
                     public void onSuccess(Void unused) {
                         InternalDataBase.getInstance(context).removeFromUnsavedTransactions(transaction);
-                        if(InternalDataBase.getInstance(context).getOfflineTransactions().size() == 0){
+                        if(InternalDataBase.getInstance(context).getOfflineTransactions().size() == 0 &&
+                                InternalDataBase.getInstance(context).getOfflineDebtUpdates().size() == 0){
                             InternalDataBase.getInstance(context).setSyncStatus(false);
                             view.clearAnimation();
                             view.setVisibility(View.GONE);
