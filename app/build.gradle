@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace 'com.example.mabei_poa'
-    compileSdk 33
+    namespace 'com.example.Cyber'
+    compileSdk 34
 
     defaultConfig {
-        applicationId "com.example.mabei_poa"
+        applicationId "com.example.Cyber"
         minSdk 23
-        targetSdk 32
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -28,6 +28,10 @@ android {
         viewBinding true
     }
 
+    dataBinding {
+        enabled = true
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -35,6 +39,9 @@ android {
 }
 
 dependencies {
+
+    // Import the Firebase BoM
+    implementation platform('com.google.firebase:firebase-bom:33.1.0')
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
@@ -53,4 +60,9 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.0'
     //Gson sharedPref
     implementation 'com.google.code.gson:gson:2.10.1'
+
+    implementation 'com.google.guava:guava:31.1-android'
 }
+
+//Apply the Google services plugin
+apply plugin: 'com.google.gms.google-services'

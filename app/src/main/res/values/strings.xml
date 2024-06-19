@@ -1,19 +1,22 @@
 <resources>
-    <string name="app_name">Mabei_Poa</string>
+    <string name="app_name">Cyber</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <string name="category0">All</string>
-    <string name="category1">Kitchen</string>
-    <string name="category2">Flour</string>
-    <string name="category3">Cereals</string>
-    <string name="category4">Drinks</string>
-    <string name="category5">Toiletries</string>
-    <string name="category6">Others</string>
+    <string name="category1">Perfumes</string>
+    <string name="category2">Electronics</string>
+    <string name="category3">Beverages</string>
+    <string name="category4">Phone accessories</string>
+    <string name="category5">Network product</string>
+    <string name="category6">Computer Accessories</string>
+    <string name="category7">Ice</string>
+    <string name="category8">Stationary</string>
+    <string name="category9">Others</string>
 
     <string name="measurement1">Units</string>
     <string name="measurement2">Lts</string>
-    <string name="measurement3">Kgs</string>
+    <string name="measurement3">grams</string>
 
     <string name="report1">Sales</string>
     <string name="report2">Purchase</string>

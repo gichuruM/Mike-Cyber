@@ -1,36 +1,26 @@
 {
   "project_info": {
-    "project_number": "47141314932",
-    "project_id": "mabei-poa",
-    "storage_bucket": "mabei-poa.appspot.com"
+    "project_number": "97468182477",
+    "project_id": "mike-cyber-4b1ed",
+    "storage_bucket": "mike-cyber-4b1ed.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:47141314932:android:e943bacd93d755e61d4c21",
+        "mobilesdk_app_id": "1:97468182477:android:1013877bbc927e6ec3de84",
         "android_client_info": {
-          "package_name": "com.example.mabei_poa"
+          "package_name": "com.example.Cyber"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "47141314932-sniu4gmf0lurdtlb1rkrei38kru61jo5.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCve-IUQEiviJNy61qL9GAiczFGRoqxPzg"
+          "current_key": "AIzaSyAA2vPR2vVlVwzoH6TW8wPOEF3vt_o3PHQ"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "47141314932-sniu4gmf0lurdtlb1rkrei38kru61jo5.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

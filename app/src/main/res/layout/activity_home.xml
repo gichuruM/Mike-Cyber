@@ -22,7 +22,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textStyle="bold|italic"
-                android:text="Bei Poa "
+                android:text="Dansted Accessories "
                 android:textSize="35sp"
                 android:gravity="center"/>
 
@@ -144,7 +144,7 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
                 android:layout_height="150dp"
-                android:id="@+id/mpesa"
+                android:id="@+id/moneyTracker"
                 android:layout_margin="5dp"
                 android:layout_weight="1"
                 app:cardElevation="5dp"
@@ -154,41 +154,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Mpesa "
+                    android:text="Money tracker "
                     android:textSize="23sp"
                     android:textStyle="bold|italic"
                     android:layout_gravity="center"/>
-
-            </androidx.cardview.widget.CardView>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_below="@+id/secondLayout"
-            android:weightSum="2"
-            android:layout_marginTop="10dp">
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="0dp"
-                android:layout_height="60dp"
-                android:layout_weight="1"
-                android:layout_margin="5dp"
-                app:cardElevation="5dp"
-                android:backgroundTint="@color/teal_200"
-                app:cardCornerRadius="20dp"
-                android:id="@+id/customers">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Customers "
-                    android:textSize="23sp"
-                    android:textStyle="bold|italic"
-                    android:layout_gravity="center"
-                    android:textAlignment="center"/>
 
             </androidx.cardview.widget.CardView>
 
