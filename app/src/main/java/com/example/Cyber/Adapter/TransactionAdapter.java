@@ -23,6 +23,7 @@ import com.example.Cyber.R;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.MyViewHolder> implements Filterable {
@@ -122,30 +123,29 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                 filtered.addAll(transactionModels);
             } else {
                 String searchWord = constraint.toString().toLowerCase().trim();
+                long last48HoursInMillis = System.currentTimeMillis() - (48*60*60*1000);
+
+                // cache all the products in a hashmap for quick lookup
+                HashMap<String, String> productMap = new HashMap<>();
+                ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(context).getAllProducts();
+                for(ProductModel p: allProducts){
+                    productMap.put(p.getId(), p.getName().toLowerCase());
+                }
 
                 for(TransactionModel t: transactionModels){
-                    long last48HoursInMillis = System.currentTimeMillis() - (48*60*60*1000);
                     //Only filtering transaction of the last 24 hours to reduce lag
                     if(t.getTimeInMillis() >= last48HoursInMillis){
                         Map<String, Double> cartDetails = t.getCartDetails();
-                        boolean included = false;
 
                         if(cartDetails != null){
-                            ArrayList<ProductModel> allProducts = InternalDataBase.getInstance(context).getAllProducts();
                             //searching through the each product in each transaction
                             for(String id: cartDetails.keySet()){
-                                for(ProductModel p: allProducts){
-                                    if(p.getId().equals(id)){
-                                        //searching the name of the product to see it contains the search term
-                                        if(p.getName().toLowerCase().contains(searchWord)){
-                                            filtered.add(t);
-                                            included = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if(included)    //if transaction already contains the desired product, go to the next transaction
+                                String productName = productMap.get(id);
+
+                                if(productName != null && productName.contains(searchWord)) {
+                                    filtered.add(t);
                                     break;
+                                }
                             }
                         }
                     }

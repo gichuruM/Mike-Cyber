@@ -7,163 +7,97 @@
     tools:context=".ReportsActivity"
     android:padding="10dp">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Report "
-            android:textSize="27sp"
-            android:textAlignment="center"
-            android:textStyle="bold|italic"
-            android:layout_marginBottom="5sp"
-            android:id="@+id/layoutReportTitle"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_below="@+id/layoutReportTitle"
-            android:id="@+id/layoutReportDuration">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Report"
-                    android:textSize="18sp"
-                    android:textStyle="bold"/>
-
-                <Spinner
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:id="@+id/reportType"/>
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:gravity="center"
-            android:layout_below="@+id/layoutReportDuration"
-            android:id="@+id/layoutReportDateNext">
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="--/--/----"
-                android:id="@+id/btnReportPickDate"
-                android:textSize="18sp"
-                android:layout_marginRight="20sp"
-                android:backgroundTint="@color/teal_200"
-                android:textColor="@color/black"/>
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_baseline_navigate_next_24"
-                app:maxImageSize="35sp"
-                android:backgroundTint="@color/teal_200"
-                android:layout_marginLeft="20sp"
-                android:id="@+id/reportSubmit"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/recordTableHeader"
-            android:layout_below="@+id/layoutReportDateNext"
-            android:orientation="horizontal"
-            android:weightSum="4"
-            android:layout_marginTop="5dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.25"
-                android:text="Date"
-                android:textSize="16sp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.75"
-                android:text="Method"
-                android:textSize="16sp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.75"
-                android:text="Number"
-                android:textAlignment="textEnd"
-                android:textSize="16sp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.25"
-                android:text="Total"
-                android:textSize="16sp"
-                android:textAlignment="textEnd"
-                android:textStyle="bold"/>
-
-        </LinearLayout>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@+id/recordTableHeader"
-            android:layout_above="@+id/layoutReportSummary"
-            android:layout_marginTop="3dp"
-            android:layout_marginBottom="10dp"
-            android:id="@+id/reportRecView"/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/layoutReportDuration"
+        android:layout_marginTop="2dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_alignParentBottom="true"
-            android:id="@+id/layoutReportSummary"
             android:weightSum="2">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Report Type"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:id="@+id/reportTvType"/>
+                android:text="Report"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
 
-            <TextView
+            <Spinner
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="40,000"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textAlignment="textEnd"
-                android:id="@+id/reportRevenue"/>
+                android:id="@+id/reportType"/>
 
         </LinearLayout>
 
-    </RelativeLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:gravity="center"
+        android:id="@+id/layoutReportDateNext"
+        android:layout_below="@+id/layoutReportDuration"
+        android:weightSum="1"
+        android:orientation="horizontal">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.7"
+            android:text="--/--/----"
+            android:id="@+id/btnReportPickDate"
+            android:textSize="18sp"
+            android:backgroundTint="@color/teal_200"
+            android:textColor="@color/black"/>
+
+    </LinearLayout>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/reportViewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/layoutReportDateNext"
+        android:layout_above="@+id/layoutReportSummary"
+        android:layout_marginTop="4dp">
+
+    </androidx.viewpager2.widget.ViewPager2>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:id="@+id/layoutReportSummary"
+        android:weightSum="2"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="3dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Sales "
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:id="@+id/reportTvType"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="40,000"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textAlignment="textEnd"
+            android:id="@+id/reportRevenue"/>
+
+    </LinearLayout>
 
 </RelativeLayout>

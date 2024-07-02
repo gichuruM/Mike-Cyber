@@ -124,6 +124,7 @@ public class CheckOutActivity extends AppCompatActivity {
 
                     for(int i = 0; i < cartProductsList.size(); i++){
                         CartModel mainProduct = cartProductsList.get(i);
+                        //Log.d(TAG, "onClick: Starting loop price "+mainProduct.getProductTotal());
                         boolean sorted = false;
                         //Ensuring we don't go through a product that has already been added to a main product
                         for(String id: sortedProducts){
@@ -132,24 +133,29 @@ public class CheckOutActivity extends AppCompatActivity {
                                 break;
                             }
                         }
-
+                        //Log.d(TAG, "onClick: sorted boolean "+sorted);
                         if(!sorted){
                             int j = i+1;
+                            boolean lastProduct = true;
                             for( ; j < cartProductsList.size(); j++){
                                 CartModel similarProduct = cartProductsList.get(j);
 
                                 if(mainProduct.getProductId().equals(similarProduct.getProductId())){
                                     double newQty = mainProduct.getQuantity() + similarProduct.getQuantity();
+                                    double newProductTotal = mainProduct.getProductTotal() + similarProduct.getProductTotal();
 
                                     mainProduct.setQuantity(newQty);
+                                    mainProduct.setProductTotal(newProductTotal);
+                                    //Log.d(TAG, "onClick: Similar product found "+mainProduct.getProductTotal());
                                 }
                                 if(j == cartProductsList.size()-1){
-                                    //The last element of the array
+                                    lastProduct = false;
+                                    //The last element of the array -->> additing th combination of all the products
                                     newCartProductsList.add(mainProduct);
                                     sortedProducts.add(mainProduct.getProductId());
                                 }
                             }
-                            if(j == cartProductsList.size()){
+                            if(lastProduct && j == cartProductsList.size()){
                                 //To ensure the last product in the cart is also sorted
                                 newCartProductsList.add(mainProduct);
                                 sortedProducts.add(mainProduct.getProductId());

@@ -19,10 +19,8 @@
     <string name="measurement3">grams</string>
 
     <string name="report1">Sales</string>
-    <string name="report2">Purchase</string>
-    <string name="report3">Profit</string>
-    <string name="report4">Cash Flow</string>
-    <string name="report5">Shop Profit</string>
+    <string name="report2">Profit</string>
+    <string name="report3">Shop Profit</string>
 
     <string name="reportDuration1">Daily</string>
     <string name="reportDuration2">Weekly</string>

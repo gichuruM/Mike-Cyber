@@ -1,5 +1,6 @@
 package com.example.Cyber;
 
+import static com.example.Cyber.HomeActivity.transactionDBRef;
 import static com.example.Cyber.ProductsActivity.TAG;
 
 import androidx.annotation.NonNull;
@@ -13,12 +14,16 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.example.Cyber.ExtraClasses.RecalculatingProfitRunnable;
 import com.example.Cyber.Model.TransactionModel;
 import com.example.Cyber.databinding.ActivityNewTransactionBinding;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -28,7 +33,7 @@ import java.util.UUID;
 public class NewTransaction extends AppCompatActivity {
 
     ActivityNewTransactionBinding binding;
-    private HandlerThread handlerThread = new HandlerThread("ConvertingTransactions");
+    private HandlerThread handlerThread = new HandlerThread("Recalculating_Profit");
     private Handler handler;
 
     @Override
@@ -41,6 +46,40 @@ public class NewTransaction extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 savingNewTransaction();
+            }
+        });
+
+        //reCalculatingProfit();
+    }
+
+    private void reCalculatingProfit() {
+
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
+
+        transactionDBRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                for(DataSnapshot snap: snapshot.getChildren()){
+                    TransactionModel transaction = snap.getValue(TransactionModel.class);
+
+                    if(transaction != null){
+                        if(transaction.getTransactionType().equals("Sale")){
+                            if(transaction.getCartDetails() != null){
+                                RecalculatingProfitRunnable recalculatingRunnable =
+                                        new RecalculatingProfitRunnable(NewTransaction.this, transaction);
+
+                                handler.post(recalculatingRunnable);
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
             }
         });
     }

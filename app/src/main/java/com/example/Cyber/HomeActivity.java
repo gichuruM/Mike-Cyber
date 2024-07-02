@@ -136,9 +136,9 @@ public class HomeActivity extends AppCompatActivity{
                     handlerThread.start();
                     threadHandler = new Handler(handlerThread.getLooper());
 
-                    if(InternalDataBase.getInstance(HomeActivity.this).getUnsavedNotes().size() > 0)
+                    if(!InternalDataBase.getInstance(HomeActivity.this).getUnsavedNotes().isEmpty())
                         SyncNotes();
-                    if(InternalDataBase.getInstance(HomeActivity.this).getOfflineTransactions().size() > 0)
+                    if(!InternalDataBase.getInstance(HomeActivity.this).getOfflineTransactions().isEmpty())
                         SyncTransactions();
                 } else
                     Toast.makeText(HomeActivity.this, "No internet connection", Toast.LENGTH_SHORT).show();
