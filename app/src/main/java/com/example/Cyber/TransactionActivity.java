@@ -43,12 +43,16 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
     ActivityTransactionBinding binding;
     TransactionAdapter transactionAdapter;
     ArrayList<TransactionModel> transactionsList;
+    String transactionId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityTransactionBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        //Getting scroll position from MoneyTracker
+        transactionId = getIntent().getStringExtra("transactionId");
 
         transactionsList = new ArrayList<>();
         binding.transactionRecView.setLayoutManager(new LinearLayoutManager(this));
@@ -148,13 +152,25 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         binding.transactionRecView.setAdapter(transactionAdapter);
         transactionAdapter.notifyDataSetChanged();
 
+        //Scrolling to a specific transaction
+        if(transactionId != null){
+            ArrayList<TransactionModel> allTransactions = InternalDataBase.getInstance(this).getAllTransactions();
+
+            for(TransactionModel t: allTransactions){
+                if(t.getTransactionId().equals(transactionId)){
+                    binding.transactionRecView.scrollToPosition(allTransactions.indexOf(t));
+                    break;
+                }
+            }
+        }
+
         if(progressDialog.isShowing())
             progressDialog.dismiss();
     }
 
     private void deletingOldTransaction() {
-        //getting time in millis a week ago
-        long weekAgoInMillis = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000);
+        //getting time in millis 2 week ago
+        long weekAgoInMillis = System.currentTimeMillis() - (15 * 24 * 60 * 60 * 1000);
 
         Query oldTransactionQuery = transactionDBRef.orderByChild("timeInMillis").endAt(weekAgoInMillis);
 

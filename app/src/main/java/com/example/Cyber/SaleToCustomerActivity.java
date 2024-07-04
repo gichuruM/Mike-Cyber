@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.view.View;
 
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -291,7 +293,17 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                             CartModel cartModel = new CartModel(p.getId(),quantity,p.getSellingPrice()*quantity);
                             cartProductsList.add(pos, cartModel);
                             cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
-                            cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
+                            cartRecView.scrollToPosition(cartProductsList.size()-1);
+
+                            // Hide the keyboard
+                            View view = getCurrentFocus();
+                            if (view != null) {
+                                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                                if (imm != null) {
+                                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                                }
+                            }
+
                             inCart = true;
                         }
 
@@ -299,7 +311,16 @@ public class SaleToCustomerActivity extends AppCompatActivity implements CartIte
                             CartModel cartModel = new CartModel(p.getId(),productBarcodes.get(key),p.getSellingPrice());
                             cartProductsList.add(cartModel);
                             cartAdapter.notifyItemInserted(cartProductsList.indexOf(cartModel));
-                            cartRecView.scrollToPosition(cartProductsList.indexOf(cartModel));
+                            cartRecView.scrollToPosition(cartProductsList.size()-1);
+
+                            // Hide the keyboard
+                            View view = getCurrentFocus();
+                            if (view != null) {
+                                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                                if (imm != null) {
+                                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                                }
+                            }
                         }
                         InternalDataBase.getInstance(this).setNewCart(cartProductsList);
                     } else {

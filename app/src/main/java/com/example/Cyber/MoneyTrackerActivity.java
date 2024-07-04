@@ -1,5 +1,7 @@
 package com.example.Cyber;
 
+import static com.example.Cyber.ProductsActivity.TAG;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -7,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.Toast;
@@ -115,8 +118,8 @@ public class MoneyTrackerActivity extends AppCompatActivity {
         progressDialog.setTitle("Loading");
         progressDialog.setMessage("transaction");
         progressDialog.show();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("d/M/yyyy");
 
+        Log.d(TAG, "getTransactionsForTracking: Initially getting transactions for tracking");
         moneyTrackerList.clear();
 
         //First get the initial starting capital
@@ -135,29 +138,7 @@ public class MoneyTrackerActivity extends AppCompatActivity {
 
                         binding.todaysStartingCapital.setText(String.valueOf(startingAmount));
                         InternalDataBase.getInstance(MoneyTrackerActivity.this).addToMoneyTracking(datePicked,startingAmount);
-                        finalMoneyTrackingStep(startingAmount);
-                    }
-
-                    private void finalMoneyTrackingStep(int amount) {
-                        //Then get all the transaction
-                        // TODO: Actions if transactions can't be found
-                        ArrayList<TransactionModel> transactions = InternalDataBase.getInstance(MoneyTrackerActivity.this).getAllTransactions();
-                        Collections.reverse(transactions);
-                        for(TransactionModel t: transactions){
-                            Date date = new Date(t.getTimeInMillis());
-                            if(dateFormat.format(date).equals(datePicked)){
-                                if(!t.getPaymentMethod().equals("Mpesa")){
-                                    moneyTrackerList.add(t);
-                                }
-                            }
-                        }
-
-                        MoneyTrackerAdapter adapter = new MoneyTrackerAdapter(MoneyTrackerActivity.this,moneyTrackerList, amount);
-
-                        binding.trackingRecyclerView.setAdapter(adapter);
-                        adapter.notifyDataSetChanged();
-
-                        progressDialog.dismiss();
+                        finalMoneyTrackingStep(startingAmount, progressDialog);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -166,8 +147,33 @@ public class MoneyTrackerActivity extends AppCompatActivity {
                         Toast.makeText(MoneyTrackerActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         binding.todaysStartingCapital.setText("0");
                         InternalDataBase.getInstance(MoneyTrackerActivity.this).addToMoneyTracking(datePicked,0);
+                        Log.d(TAG, "onFailure: failed or not available");
+                        finalMoneyTrackingStep(0, progressDialog);
                     }
                 });
+    }
+
+    private void finalMoneyTrackingStep(int amount, ProgressDialog progressDialog) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("d/M/yyyy");
+        Log.d(TAG, "finalMoneyTrackingStep: final money tracking part");
+        //Then get all the transaction
+        ArrayList<TransactionModel> transactions = InternalDataBase.getInstance(MoneyTrackerActivity.this).getAllTransactions();
+        Collections.reverse(transactions);
+        for(TransactionModel t: transactions){
+            Date date = new Date(t.getTimeInMillis());
+            if(dateFormat.format(date).equals(datePicked)){
+                if(!t.getPaymentMethod().equals("Mpesa")){
+                    moneyTrackerList.add(t);
+                }
+            }
+        }
+
+        MoneyTrackerAdapter adapter = new MoneyTrackerAdapter(MoneyTrackerActivity.this,moneyTrackerList, amount);
+
+        binding.trackingRecyclerView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+
+        progressDialog.dismiss();
     }
 
     private void DatePicker() {

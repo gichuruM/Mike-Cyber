@@ -263,12 +263,25 @@ public class AddNewProductActivity extends AppCompatActivity {
 
                         startActivity(new Intent(AddNewProductActivity.this,ProductsActivity.class)
                                 .putExtra("type","Default")
+                                .putExtra("productId",existingProduct.getId())
                                 .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                     }
                 }
             }
         });
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(newProduct)
+            super.onBackPressed();
+        else {
+            startActivity(new Intent(AddNewProductActivity.this, ProductsActivity.class)
+                    .putExtra("type","Default")
+                    .putExtra("productId",existingProduct.getId())
+                    .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+        }
     }
 
     @Override

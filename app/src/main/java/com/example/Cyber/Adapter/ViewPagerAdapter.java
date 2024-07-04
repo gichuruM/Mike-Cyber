@@ -1,5 +1,7 @@
 package com.example.Cyber.Adapter;
 
+import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -17,9 +19,11 @@ import com.example.Cyber.Fragment.ElectronicsFragment;
 import com.example.Cyber.Fragment.StationaryFragment;
 
 public class ViewPagerAdapter extends FragmentStateAdapter {
+    String productId;
 
-    public ViewPagerAdapter(@NonNull FragmentActivity fragmentActivity) {
+    public ViewPagerAdapter(@NonNull FragmentActivity fragmentActivity, String productId) {
         super(fragmentActivity);
+        this.productId = productId;
     }
 
     @NonNull
@@ -28,7 +32,19 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
 
         switch(position){
             case 0:
-                return new AllProductsFragment();
+                AllProductsFragment productsFragment;
+
+                if(!productId.isEmpty()){
+                    Bundle bundle = new Bundle();
+                    bundle.putString("productId", productId);
+                    productsFragment = new AllProductsFragment();
+
+                    productsFragment.setArguments(bundle);
+                } else {
+                    productsFragment = new AllProductsFragment();
+                }
+
+                return productsFragment;
             case 1:
                 return new PerfumesFragment();
             case 2:

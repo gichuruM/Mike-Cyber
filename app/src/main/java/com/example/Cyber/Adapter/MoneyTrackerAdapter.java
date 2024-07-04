@@ -1,16 +1,19 @@
 package com.example.Cyber.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.Cyber.Model.TransactionModel;
 import com.example.Cyber.R;
+import com.example.Cyber.TransactionActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -62,6 +65,15 @@ public class MoneyTrackerAdapter extends RecyclerView.Adapter<MoneyTrackerAdapte
             holder.transactionType.setText("Withdraw");
         else
             holder.transactionType.setText(transaction.getTransactionType());
+
+        holder.moneyTrackerTransactionContainer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, TransactionActivity.class)
+                        .putExtra("transactionId",transaction.getTransactionId());
+                context.startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -72,6 +84,7 @@ public class MoneyTrackerAdapter extends RecyclerView.Adapter<MoneyTrackerAdapte
     public static class MyViewHolder extends RecyclerView.ViewHolder{
 
         TextView time, accumulatingAmount, transactionType, transactionAmount;
+        CardView moneyTrackerTransactionContainer;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -79,6 +92,7 @@ public class MoneyTrackerAdapter extends RecyclerView.Adapter<MoneyTrackerAdapte
             accumulatingAmount = itemView.findViewById(R.id.trackTransactionCash);
             transactionType = itemView.findViewById(R.id.transactionType);
             transactionAmount = itemView.findViewById(R.id.trackingTransactionAmount);
+            moneyTrackerTransactionContainer = itemView.findViewById(R.id.moneyTrackerTransactionContainer);
         }
     }
 }

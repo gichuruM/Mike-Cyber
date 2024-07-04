@@ -2,9 +2,12 @@ package com.example.Cyber.Adapter;
 
 import static com.example.Cyber.ReportsActivity.reportSettingType;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -12,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.Cyber.Model.TransactionModel;
 import com.example.Cyber.R;
+import com.example.Cyber.TransactionActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,10 +24,12 @@ import java.util.Map;
 
 public class ReportDataAdapter extends RecyclerView.Adapter<ReportDataAdapter.MyViewHolder>{
 
+    private Context context;
     private ArrayList<TransactionModel> transactionModels;
     private SimpleDateFormat simpleDateFormat;
 
-    public ReportDataAdapter(ArrayList<TransactionModel> transactionModels) {
+    public ReportDataAdapter(Context context, ArrayList<TransactionModel> transactionModels) {
+        this.context = context;
         this.transactionModels = transactionModels;
         simpleDateFormat = new SimpleDateFormat("hh:mma");
     }
@@ -58,6 +64,15 @@ public class ReportDataAdapter extends RecyclerView.Adapter<ReportDataAdapter.My
             double waterLess =  transactionModel.getWaterlessProfit();
             holder.reportAmountTotal.setText(String.format("%.1f", waterLess));
         }
+
+        holder.reportTransactionContainer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, TransactionActivity.class)
+                        .putExtra("transactionId",transactionModel.getTransactionId());
+                context.startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -68,6 +83,7 @@ public class ReportDataAdapter extends RecyclerView.Adapter<ReportDataAdapter.My
     public static class MyViewHolder extends RecyclerView.ViewHolder{
 
         private TextView reportDate, reportPayment, reportItemNum, reportAmountTotal;
+        private LinearLayout reportTransactionContainer;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -76,6 +92,7 @@ public class ReportDataAdapter extends RecyclerView.Adapter<ReportDataAdapter.My
             reportPayment = itemView.findViewById(R.id.reportPayment);
             reportItemNum = itemView.findViewById(R.id.reportItemNum);
             reportAmountTotal = itemView.findViewById(R.id.reportAmountTotal);
+            reportTransactionContainer = itemView.findViewById(R.id.reportTransactionContainer);
         }
     }
 }

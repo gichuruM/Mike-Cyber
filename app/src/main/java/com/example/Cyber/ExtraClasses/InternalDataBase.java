@@ -165,7 +165,6 @@ public class InternalDataBase {
         Map<String, Integer> moneyTracking = getTrackingData();
 
         if(moneyTracking == null) return false;
-        Log.d(TAG, "addToMoneyTracking: Adding Starting Tracking Capital");
 
         moneyTracking.put(date,capital);
         editor.remove(MONEY_TRACKING);

@@ -47,37 +47,39 @@ public class TransactionCartProductAdapter extends RecyclerView.Adapter<Transact
             holder.transactionProductQty.setText("N/A");
         holder.transactionProductUnits.setText(product.getUnits());
 
-        if(transactionType.equals("Purchase")){
-            holder.transactionProductPrice.setText(String.valueOf(product.getPurchasePrice()));
-            Double qty = cartItemDetails.get(product.getId());
-            if(qty != null){
-                double productTotalBuying = qty*product.getPurchasePrice();
-                int remainder = (int) (productTotalBuying % 5);
-                if(remainder != 0)
-                    productTotalBuying += (5 - remainder);
+        if(cartItemDetails != null){
+            if(transactionType.equals("Purchase")){
+                holder.transactionProductPrice.setText(String.valueOf(product.getPurchasePrice()));
+                Double qty = cartItemDetails.get(product.getId());
+                if(qty != null){
+                    double productTotalBuying = qty*product.getPurchasePrice();
+                    int remainder = (int) (productTotalBuying % 5);
+                    if(remainder != 0)
+                        productTotalBuying += (5 - remainder);
 
-                int totalBuying = (int) productTotalBuying;
+                    int totalBuying = (int) productTotalBuying;
 
-                holder.transactionProductAmount.setText(String.valueOf(totalBuying));
+                    holder.transactionProductAmount.setText(String.valueOf(totalBuying));
+                }
+                else
+                    holder.transactionProductAmount.setText("N/A");
+            } else if(transactionType.equals("Sale")){
+                holder.transactionProductPrice.setText(String.valueOf(product.getSellingPrice()));
+                Double qty = cartItemDetails.get(product.getId());
+                if(qty != null){
+                    double productTotalSelling = qty*product.getSellingPrice();
+                    int remainder = (int) (productTotalSelling % 5);
+                    if(remainder != 0)
+                        productTotalSelling += (5 - remainder);
+
+                    int totalSelling = (int) productTotalSelling;
+
+                    holder.transactionProductAmount.setText(String.valueOf(totalSelling));
+                }
+                else
+                    holder.transactionProductAmount.setText("N/A");
             }
-            else
-                holder.transactionProductAmount.setText("N/A");
-        } else if(transactionType.equals("Sale")){
-            holder.transactionProductPrice.setText(String.valueOf(product.getSellingPrice()));
-            Double qty = cartItemDetails.get(product.getId());
-            if(qty != null){
-                double productTotalSelling = qty*product.getSellingPrice();
-                int remainder = (int) (productTotalSelling % 5);
-                if(remainder != 0)
-                    productTotalSelling += (5 - remainder);
-
-                int totalSelling = (int) productTotalSelling;
-
-                holder.transactionProductAmount.setText(String.valueOf(totalSelling));
-            }
-            else
-                holder.transactionProductAmount.setText("N/A");
-        }
+        } else holder.transactionProductAmount.setText("N/A");
     }
 
     @Override

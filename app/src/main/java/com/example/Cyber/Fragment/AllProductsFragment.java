@@ -40,6 +40,7 @@ public class AllProductsFragment extends Fragment {
     FloatingActionButton addProduct, finishSelecting;
     RecyclerView recyclerView;
     SwitchMaterial lowStockSwitch;
+    int scrollPosition = 0;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -50,6 +51,7 @@ public class AllProductsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         addProduct = view.findViewById(R.id.addProduct);
         finishSelecting = view.findViewById(R.id.finishSelectingProducts);
 
@@ -58,6 +60,19 @@ public class AllProductsFragment extends Fragment {
         recyclerView.setHasFixedSize(true);
 
         lowStockSwitch = view.findViewById(R.id.lowStockSwitch);
+
+        //Functions to scroll to the previously corrected product
+        if(getArguments() != null){
+            String productId = getArguments().getString("productId");
+            ArrayList<ProductModel> allProductsList = InternalDataBase.getInstance(getActivity()).getAllProducts();
+
+            for(ProductModel p: allProductsList){
+                if(p.getId().equals(productId)){
+                    scrollPosition = allProductsList.indexOf(p);
+                    break;
+                }
+            }
+        }
 
         if(ProductsActivity.activityType.equals("Cart")){
             finishSelecting.setVisibility(View.VISIBLE);
@@ -181,6 +196,11 @@ public class AllProductsFragment extends Fragment {
 
         recyclerView.setAdapter(ProductsActivity.productsAdapter);
         ProductsActivity.productsAdapter.notifyDataSetChanged();
+
+        if(scrollPosition != 0){
+            recyclerView.scrollToPosition(scrollPosition);
+            scrollPosition = 0;
+        }
 
         if(progressDialog.isShowing())
             progressDialog.dismiss();

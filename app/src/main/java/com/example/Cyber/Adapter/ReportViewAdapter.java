@@ -8,6 +8,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.example.Cyber.Fragment.DefaultReportFragment;
 import com.example.Cyber.Fragment.ProductReportFragment;
+import com.example.Cyber.Fragment.ProductSummaryFragment;
 import com.example.Cyber.Fragment.ProductsCartFragment;
 
 public class ReportViewAdapter extends FragmentStateAdapter {
@@ -22,13 +23,17 @@ public class ReportViewAdapter extends FragmentStateAdapter {
         switch (position){
             case 0:
                 return new DefaultReportFragment();
-            default:
+            case 1:
                 return new ProductReportFragment();
+            case 2:
+                return new ProductSummaryFragment();
+            default:
+                return new DefaultReportFragment();
         }
     }
 
     @Override
     public int getItemCount() {
-        return 2;
+        return 3;
     }
 }

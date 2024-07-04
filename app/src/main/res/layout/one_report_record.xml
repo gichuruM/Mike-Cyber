@@ -1,53 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:cardCornerRadius="1dp"
-    android:elevation="5dp"
-    android:layout_margin="3dp">
+    android:weightSum="4"
+    android:orientation="horizontal"
+    android:padding="3dp"
+    android:id="@+id/reportTransactionContainer">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:weightSum="4"
-        android:orientation="horizontal">
+        android:layout_weight="1.25"
+        android:text="Time and date"
+        android:textSize="16sp"
+        android:id="@+id/reportDate"/>
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.25"
-            android:text="Time and date"
-            android:textSize="16sp"
-            android:id="@+id/reportDate"/>
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.75"
+        android:text="Payment"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:id="@+id/reportPayment"/>
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.75"
-            android:text="Payment"
-            android:textAlignment="center"
-            android:textSize="16sp"
-            android:id="@+id/reportPayment"/>
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.75"
+        android:text="Num"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:id="@+id/reportItemNum"/>
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.75"
-            android:text="Num"
-            android:textAlignment="center"
-            android:textSize="16sp"
-            android:id="@+id/reportItemNum"/>
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.25"
+        android:text="Total"
+        android:textAlignment="textEnd"
+        android:textSize="16sp"
+        android:id="@+id/reportAmountTotal"/>
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.25"
-            android:text="Total"
-            android:textAlignment="textEnd"
-            android:textSize="16sp"
-            android:id="@+id/reportAmountTotal"/>
-
-    </LinearLayout>
-
-</androidx.cardview.widget.CardView>
+</LinearLayout>

@@ -123,7 +123,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                 filtered.addAll(transactionModels);
             } else {
                 String searchWord = constraint.toString().toLowerCase().trim();
-                long last48HoursInMillis = System.currentTimeMillis() - (48*60*60*1000);
+                long last72HoursInMillis = System.currentTimeMillis() - (72*60*60*1000);
 
                 // cache all the products in a hashmap for quick lookup
                 HashMap<String, String> productMap = new HashMap<>();
@@ -134,7 +134,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
                 for(TransactionModel t: transactionModels){
                     //Only filtering transaction of the last 24 hours to reduce lag
-                    if(t.getTimeInMillis() >= last48HoursInMillis){
+                    if(t.getTimeInMillis() >= last72HoursInMillis){
                         Map<String, Double> cartDetails = t.getCartDetails();
 
                         if(cartDetails != null){

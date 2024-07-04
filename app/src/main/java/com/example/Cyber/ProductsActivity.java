@@ -34,8 +34,16 @@ public class ProductsActivity extends AppCompatActivity {
 
         activityType = getIntent().getStringExtra("type");
 
-        viewPagerAdapter = new ViewPagerAdapter(this);
-        binding.viewPager2.setAdapter(viewPagerAdapter);
+        //Passing data from the activity to the fragment
+        String productId = getIntent().getStringExtra("productId");
+
+        if(productId != null){
+            viewPagerAdapter = new ViewPagerAdapter(this, productId);
+            binding.viewPager2.setAdapter(viewPagerAdapter);
+        } else {
+            viewPagerAdapter = new ViewPagerAdapter(this, "");
+            binding.viewPager2.setAdapter(viewPagerAdapter);
+        }
 
         binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override

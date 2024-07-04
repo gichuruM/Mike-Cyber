@@ -41,6 +41,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Objects;
 
 public class HomeActivity extends AppCompatActivity{
@@ -173,7 +174,14 @@ public class HomeActivity extends AppCompatActivity{
                                 if(product != null)
                                     finalAllProductsList.add(product);
                             }
-                            Log.d(TAG, "onDataChange: products initialized for the 1st time, products updated");
+                            //Organizing the products in alphabetical order
+                            Collections.sort(finalAllProductsList, new Comparator<ProductModel>() {
+                                @Override
+                                public int compare(ProductModel o1, ProductModel o2) {
+                                    return o1.getName().compareToIgnoreCase(o2.getName());
+                                }
+                            });
+
                             InternalDataBase.getInstance(HomeActivity.this).batchAdditionToAllProducts(finalAllProductsList);
                             runOnUiThread(new Runnable() {
                                 @Override
