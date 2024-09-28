@@ -324,8 +324,12 @@ public class HomeActivity extends AppCompatActivity{
             public void onClick(View v) {
                 bottomSheetDialog.cancel();
 
-                Intent intent = new Intent(HomeActivity.this,CommissionActivity.class);
-                startActivity(intent);
+                if(userUID.equals(SHOP_USER_UID))
+                    Toast.makeText(HomeActivity.this, "Access denied", Toast.LENGTH_SHORT).show();
+                else {
+                    Intent intent = new Intent(HomeActivity.this, NewStockRecord.class);
+                    startActivity(intent);
+                }
             }
         });
 

@@ -1,26 +1,176 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CommissionActivity">
+    android:orientation="vertical"
+    tools:context=".NewStockRecord"
+    android:padding="16dp"
+    android:id="@+id/newStockRecord">
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:src="@drawable/ic_baseline_construction_24"
-        android:id="@+id/underConstructionImg"/>
-
+    <!-- Product Selection -->
     <TextView
+        android:id="@+id/productLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Product"
+        android:textSize="16sp"/>
+    <Spinner
+        android:id="@+id/productSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <!-- Old Stock Display (Horizontal Layout) -->
+    <LinearLayout
+        android:id="@+id/oldStockLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/oldStockLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Current Stock: "
+            android:textSize="16sp"/>
+
+        <TextView
+            android:id="@+id/oldStockValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+
+    <!-- Quantity Input -->
+    <TextView
+        android:id="@+id/quantityLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter Quantity"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp"/>
+    <EditText
+        android:id="@+id/quantityInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Under Construction"
-        android:textSize="30sp"
-        android:textStyle="bold|italic"
-        android:gravity="center"
-        android:id="@+id/commissionAmount"
-        android:layout_below="@+id/underConstructionImg" />
+        android:inputType="numberDecimal"
+        android:hint="Quantity"/>
 
-</RelativeLayout>
+    <!-- Buying Price Input -->
+    <TextView
+        android:id="@+id/buyingPriceLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Buying Price"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp"/>
+    <EditText
+        android:id="@+id/buyingPriceInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:hint="Buying Price"/>
+
+    <!-- Selling Price Input -->
+    <TextView
+        android:id="@+id/sellingPriceLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Selling Price"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp"/>
+    <EditText
+        android:id="@+id/sellingPriceInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:hint="Selling Price"/>
+
+    <!-- Submit Button -->
+    <Button
+        android:id="@+id/submitButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Stock"
+        android:layout_marginTop="10dp"/>
+
+    <!-- Stock Adjustment History Label with Switch -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="7dp">
+
+        <TextView
+            android:id="@+id/stockHistoryLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Stock Adjustment History"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_weight="1"/>
+
+        <Switch
+            android:id="@+id/filterSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Filter"
+            android:checked="false"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        android:layout_marginTop="3dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Product Name"
+            android:textStyle="bold|italic"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Restock Qty"
+            android:textStyle="bold|italic"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Old Qty"
+            android:textStyle="bold|italic"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Time"
+            android:textStyle="bold|italic"/>
+
+    </LinearLayout>
+
+    <!-- RecyclerView for Stock History -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/stockHistoryRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="5dp"/>
+
+</LinearLayout>

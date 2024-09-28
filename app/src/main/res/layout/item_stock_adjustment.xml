@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/stockAdjustmentItem"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="4dp"
+    android:background="?android:attr/selectableItemBackground">
+
+    <!-- Product Name -->
+    <TextView
+        android:id="@+id/productName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Product"
+        android:textSize="14sp"
+        android:layout_weight="2"/>
+
+    <!-- Quantity Added -->
+    <TextView
+        android:id="@+id/quantityAdded"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="+0"
+        android:textSize="14sp"
+        android:layout_weight="1"
+        android:gravity="center"/>
+
+    <!-- Old Quantity -->
+    <TextView
+        android:id="@+id/quantityOld"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Old: 0"
+        android:textSize="14sp"
+        android:layout_weight="1"
+        android:gravity="center"/>
+
+    <!-- Timestamp -->
+    <TextView
+        android:id="@+id/timestamp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Date"
+        android:textSize="14sp"
+        android:layout_weight="2"
+        android:gravity="center"/>
+</LinearLayout>

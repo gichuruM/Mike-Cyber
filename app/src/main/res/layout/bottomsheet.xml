@@ -51,13 +51,13 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="commission"
+                android:text="Record New Stock"
                 android:textSize="25sp"/>
 
             <ImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:src="@drawable/ic_baseline_monetization_on_24"
+                android:src="@drawable/baseline_addchart_24"
                 android:layout_marginLeft="10dp"/>
 
         </LinearLayout>
